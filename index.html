@@ -638,7 +638,14 @@ let state = {
   qualChecks: {},
   notes: "",
   selectedServices: {},
-  kpNotes: ""
+  kpNotes: "",
+  b24search: "",
+  b24deals: [],
+  b24loading: false,
+  b24error: "",
+  b24sending: false,
+  b24success: "",
+  b24dealLink: ""
 };
 
 function fmt(n) { return n.toLocaleString("ru-RU"); }
@@ -822,6 +829,82 @@ function generatePDF() {
   }
 }
 
+// ─── BITRIX24 INTEGRATION ───
+const B24_HOOK = 'https://2kconsult.bitrix24.ru/rest/1/co3ujogzfkd7sczs/';
+
+async function b24call(method, params = {}) {
+  const url = B24_HOOK + method;
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params)
+  });
+  return await resp.json();
+}
+
+async function searchDeals(query) {
+  state.b24loading = true;
+  state.b24deals = [];
+  state.b24error = '';
+  render();
+  try {
+    const params = {
+      filter: {},
+      select: ['ID', 'TITLE', 'OPPORTUNITY', 'CONTACT_ID', 'COMPANY_ID', 'STAGE_ID', 'CATEGORY_ID', 'DATE_CREATE'],
+      order: { 'DATE_CREATE': 'DESC' },
+      start: 0
+    };
+    if (query && query.trim()) {
+      params.filter['%TITLE'] = query.trim();
+    }
+    const data = await b24call('crm.deal.list', params);
+    if (data.result && data.result.length > 0) {
+      state.b24deals = data.result;
+    } else if (query && query.trim()) {
+      const data2 = await b24call('crm.deal.list', {
+        filter: { '%TITLE': query.trim().split(' ')[0] },
+        select: ['ID','TITLE','OPPORTUNITY','STAGE_ID','CATEGORY_ID','DATE_CREATE'],
+        order: { 'DATE_CREATE': 'DESC' }, start: 0
+      });
+      state.b24deals = (data2.result || []);
+    }
+    if (state.b24deals.length === 0) state.b24error = 'Сделки не найдены. Попробуйте другой запрос.';
+  } catch (e) {
+    state.b24error = 'Ошибка соединения с Битрикс24: ' + e.message;
+  }
+  state.b24loading = false;
+  render();
+}
+
+async function attachKPtoDeal(dealId, dealTitle) {
+  state.b24sending = true;
+  render();
+  try {
+    const cat = CATEGORIES[state.catKey];
+    const services = cat.pricing.filter((_, i) => state.selectedServices[i]);
+    const totalFrom = services.reduce((s, p) => s + p.from, 0);
+    const totalTo = services.reduce((s, p) => s + p.to, 0);
+    await b24call('crm.deal.update', {
+      id: dealId,
+      fields: { OPPORTUNITY: totalTo > totalFrom ? totalTo : totalFrom }
+    });
+    const kpText = getKPText();
+    const comment = '📋 КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ\n━━━━━━━━━━━━━━━━━━━━━━\nНаправление: ' + cat.icon + ' ' + cat.name + '\nУслуг: ' + services.length + '\nСумма: ' + (totalFrom === totalTo ? fmt(totalFrom) + ' ₽' : 'от ' + fmt(totalFrom) + ' до ' + fmt(totalTo) + ' ₽') + '\n━━━━━━━━━━━━━━━━━━━━━━\n\n' + kpText;
+    await b24call('crm.timeline.comment.add', {
+      fields: { ENTITY_ID: dealId, ENTITY_TYPE: 'deal', COMMENT: comment }
+    });
+    state.b24sending = false;
+    state.b24success = dealTitle;
+    state.b24dealLink = 'https://2kconsult.bitrix24.ru/crm/deal/details/' + dealId + '/';
+    render();
+    showToast('✓ КП прикреплено к сделке!');
+  } catch (e) {
+    state.b24sending = false;
+    state.b24error = 'Ошибка: ' + e.message;
+    render();
+  }
+}
+
 // ─── RENDER ───
 function render() {
   const app = document.getElementById("app");
@@ -984,6 +1067,9 @@ function render() {
         </button>
         <button class="btn" style="background:#6C5CE7;margin-top:8px" onclick="generatePDF()">
           📄 Скачать КП в PDF
+        </button>
+        <button class="btn" style="background:#00B894;margin-top:8px" onclick="state.screen='b24'; state.b24deals=[]; state.b24error=''; state.b24success=''; state.b24search=state.clientName||''; render();">
+          🔗 Прикрепить КП к сделке в Б24
         </button>`;
     }
 
@@ -1001,9 +1087,85 @@ function render() {
         ${totalBlock}
         <div class="btn-row" style="margin-top:16px">
           <button class="btn btn-outline" onclick="state.screen='questions'; render();">← Вопросы</button>
-          <button class="btn btn-outline" onclick="state={screen:'home',catKey:null,clientName:'',clientCompany:'',clientContact:'',qualChecks:{},notes:'',selectedServices:{},kpNotes:''}; render();">⟲ Новый клиент</button>
+          <button class="btn btn-outline" onclick="state={screen:'home',catKey:null,clientName:'',clientCompany:'',clientContact:'',qualChecks:{},notes:'',selectedServices:{},kpNotes:'',b24search:'',b24deals:[],b24loading:false,b24error:'',b24sending:false,b24success:'',b24dealLink:''}; render();">⟲ Новый клиент</button>
         </div>
       </div>`;
+    return;
+  }
+
+  // ─── BITRIX24 SCREEN ───
+  if (state.screen === "b24") {
+    const cat = CATEGORIES[state.catKey];
+    const services = cat.pricing.filter((_, i) => state.selectedServices[i]);
+    const totalFrom = services.reduce((s, p) => s + p.from, 0);
+    const totalTo = services.reduce((s, p) => s + p.to, 0);
+    const totalStr = totalFrom === totalTo ? fmt(totalFrom) + ' ₽' : fmt(totalFrom) + ' – ' + fmt(totalTo) + ' ₽';
+
+    let content = '';
+
+    if (state.b24success) {
+      content = '<div class="card" style="border-color:var(--success);background:rgba(81,207,102,0.08);text-align:center;padding:32px 20px">' +
+        '<div style="font-size:48px;margin-bottom:12px">✅</div>' +
+        '<div style="font-size:18px;font-weight:700;margin-bottom:6px">КП прикреплено!</div>' +
+        '<div style="font-size:14px;color:var(--muted);margin-bottom:16px">Сделка: ' + state.b24success + '</div>' +
+        '<a href="' + state.b24dealLink + '" target="_blank" style="display:inline-block;padding:12px 24px;background:var(--success);color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px">Открыть сделку в Б24 →</a>' +
+      '</div>' +
+      '<button class="btn btn-outline" style="margin-top:12px" onclick="state={screen:\'home\',catKey:null,clientName:\'\',clientCompany:\'\',clientContact:\'\',qualChecks:{},notes:\'\',selectedServices:{},kpNotes:\'\',b24search:\'\',b24deals:[],b24loading:false,b24error:\'\',b24sending:false,b24success:\'\',b24dealLink:\'\'}; render();">⟲ Новый клиент</button>';
+    } else {
+      content = '<div class="card" style="border-color:#00B894;background:rgba(0,184,148,0.06)">' +
+        '<div style="font-size:13px;color:var(--text);line-height:1.6">🔗 Найдите сделку в Битрикс24 и прикрепите КП.<br><strong>Сумма: ' + totalStr + '</strong> | ' + cat.icon + ' ' + cat.name + '</div>' +
+      '</div>' +
+      '<div class="card">' +
+        '<div class="card-label">Поиск сделки</div>' +
+        '<div style="display:flex;gap:8px">' +
+          '<input type="text" id="b24input" placeholder="Имя клиента или название сделки" value="' + (state.b24search || '').replace(/"/g,'&quot;') + '" oninput="state.b24search=this.value" onkeydown="if(event.key===\'Enter\'){searchDeals(state.b24search)}" style="flex:1">' +
+          '<button class="btn" style="width:auto;padding:12px 20px;background:#00B894;flex-shrink:0" onclick="searchDeals(state.b24search)">🔍</button>' +
+        '</div>' +
+        '<div style="margin-top:8px;font-size:12px;color:var(--muted)">Введите часть названия и нажмите 🔍 или Enter. Оставьте пустым для последних сделок.</div>' +
+      '</div>';
+
+      if (state.b24loading) {
+        content += '<div class="card" style="text-align:center;padding:32px"><div style="font-size:14px;color:var(--muted)">⏳ Загрузка сделок...</div></div>';
+      }
+      if (state.b24error && !state.b24loading) {
+        content += '<div class="card" style="border-color:var(--danger);background:rgba(255,107,107,0.06)"><div style="font-size:13px;color:var(--danger)">' + state.b24error + '</div></div>';
+      }
+      if (state.b24sending) {
+        content += '<div class="card" style="text-align:center;padding:32px"><div style="font-size:14px;color:var(--muted)">⏳ Прикрепляю КП...</div></div>';
+      }
+      if (state.b24deals.length > 0 && !state.b24loading && !state.b24sending) {
+        content += '<div class="section-label" style="margin-top:8px">Найдено: ' + state.b24deals.length + '</div>';
+        state.b24deals.forEach(function(d) {
+          const date = d.DATE_CREATE ? new Date(d.DATE_CREATE).toLocaleDateString('ru-RU') : '';
+          const amount = d.OPPORTUNITY ? fmt(parseFloat(d.OPPORTUNITY)) + ' ₽' : '—';
+          const safeTitle = (d.TITLE||'Без названия').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+          content += '<div class="card" style="cursor:pointer;padding:16px" onclick="if(confirm(\'Прикрепить КП к сделке:\\n' + safeTitle + '?\')){attachKPtoDeal(' + d.ID + ',\'' + safeTitle + '\')}" onmouseenter="this.style.borderColor=\'#00B894\'" onmouseleave="this.style.borderColor=\'var(--border)\'">' +
+            '<div style="display:flex;align-items:center;gap:12px">' +
+              '<div style="width:40px;height:40px;border-radius:10px;background:rgba(0,184,148,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">📋</div>' +
+              '<div style="flex:1;min-width:0">' +
+                '<div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (d.TITLE || 'Без названия') + '</div>' +
+                '<div style="display:flex;gap:12px;margin-top:3px;flex-wrap:wrap">' +
+                  '<span style="font-size:12px;color:#00B894;font-weight:600">' + amount + '</span>' +
+                  '<span style="font-size:12px;color:var(--muted)">ID: ' + d.ID + '</span>' +
+                  '<span style="font-size:12px;color:var(--muted)">' + date + '</span>' +
+                '</div>' +
+              '</div>' +
+              '<div style="color:var(--muted);font-size:18px;flex-shrink:0">→</div>' +
+            '</div>' +
+          '</div>';
+        });
+      }
+      content += '<button class="btn btn-outline" style="margin-top:12px" onclick="state.screen=\'kp\'; state.b24deals=[]; state.b24error=\'\'; render();">← Назад к КП</button>';
+    }
+
+    app.innerHTML = '<div class="header"><div class="header-row">' +
+      '<button class="back-btn" onclick="state.screen=\'kp\'; state.b24deals=[]; state.b24error=\'\'; render();">←</button>' +
+      '<div class="header-info">' +
+        '<div class="header-cat" style="color:#00B894">🔗 Битрикс24</div>' +
+        '<div class="header-title">Прикрепить КП к сделке</div>' +
+      '</div>' +
+    '</div></div>' +
+    '<div class="page">' + content + '</div>';
     return;
   }
 }
