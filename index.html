@@ -8,6 +8,7 @@
 <meta property="og:title" content="2К Консалтинг — Помощник продаж">
 <meta property="og:description" content="Инструмент для менеджеров отдела продаж: квалификация, вопросы клиенту, формирование КП">
 <meta property="og:type" content="website">
+<script src="https://api.bitrix24.com/api/v1/"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -197,6 +198,13 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
 .guide-content { flex:1; }
 .guide-title { font-size:14px; font-weight:700; margin-bottom:4px; }
 .guide-desc { font-size:13px; color:var(--muted); line-height:1.5; }
+
+/* ─── B24 EMBEDDED ─── */
+.b24-banner { background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.3); border-radius: 14px; padding: 14px 18px; margin-bottom: 16px; }
+.b24-banner-label { font-size: 10px; font-weight: 700; color: var(--accent); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; }
+.b24-banner-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.b24-banner-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.b24-embedded .app { max-width: 100% !important; }
 
 /* ─── BUTTONS ─── */
 .btn {
@@ -789,6 +797,87 @@ let state = {
   compareRecommend: 0
 };
 
+// ─── BITRIX24 EMBEDDED CONTEXT ───
+let b24context = {
+  isEmbedded: false,
+  dealId: null,
+  dealData: null,
+  contactData: null,
+  companyData: null,
+  ready: false
+};
+
+function bx24CallPromise(method, params) {
+  return new Promise(function(resolve, reject) {
+    BX24.callMethod(method, params, function(result) {
+      if (result.error()) {
+        reject(result.error());
+      } else {
+        resolve({ result: result.data() });
+      }
+    });
+  });
+}
+
+async function loadDealContext(dealId) {
+  try {
+    const dealResp = await bx24CallPromise('crm.deal.get', { id: dealId });
+    b24context.dealData = dealResp.result;
+
+    const contactId = b24context.dealData.CONTACT_ID;
+    const companyId = b24context.dealData.COMPANY_ID;
+
+    if (contactId) {
+      try {
+        const cResp = await bx24CallPromise('crm.contact.get', { id: contactId });
+        b24context.contactData = cResp.result;
+      } catch(e) {}
+    }
+    if (companyId) {
+      try {
+        const coResp = await bx24CallPromise('crm.company.get', { id: companyId });
+        b24context.companyData = coResp.result;
+      } catch(e) {}
+    }
+    prefillStateFromDeal();
+  } catch(e) {
+    console.warn('B24 loadDealContext error:', e);
+  }
+  b24context.ready = true;
+  render();
+}
+
+function prefillStateFromDeal() {
+  const c = b24context.contactData;
+  const co = b24context.companyData;
+  const d = b24context.dealData;
+  if (c) {
+    state.clientName = [c.NAME, c.LAST_NAME].filter(Boolean).join(' ');
+    if (c.PHONE && c.PHONE[0]) state.clientPhone = c.PHONE[0].VALUE;
+    if (c.EMAIL && c.EMAIL[0]) state.clientEmail = c.EMAIL[0].VALUE;
+  }
+  if (co) {
+    state.clientCompany = co.TITLE || '';
+  }
+  if (d && d.SOURCE_ID) {
+    const srcMap = { CALL: 'Звонок', WEB: 'Сайт', ADVERTISING: 'Реклама', PARTNER: 'Партнёр', RECOMMENDATION: 'Рекомендация', TRADE_SHOW: 'Выставка', WEBFORM: 'Сайт', OTHER: 'Другое', '15': 'Авито' };
+    state.clientSource = srcMap[d.SOURCE_ID] || '';
+  }
+}
+
+function parseUrlParams() {
+  const p = new URLSearchParams(window.location.search);
+  if (p.get('name')) state.clientName = p.get('name');
+  if (p.get('company')) state.clientCompany = p.get('company');
+  if (p.get('phone')) state.clientPhone = p.get('phone');
+  if (p.get('email')) state.clientEmail = p.get('email');
+  if (p.get('inn')) state.clientInn = p.get('inn');
+  if (p.get('source')) state.clientSource = p.get('source');
+  if (p.get('dealId')) {
+    b24context.dealId = p.get('dealId');
+  }
+}
+
 function fmt(n) { return n.toLocaleString("ru-RU"); }
 
 // ─── PACKAGE HELPERS ───
@@ -1194,15 +1283,15 @@ function generatePDF() {
   if (typeof html2pdf !== 'undefined') {
     const container = document.createElement('div');
     container.innerHTML = kpHTML;
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
+    Object.assign(container.style, { width:'900px', background:'#fff', position:'relative' });
     document.body.appendChild(container);
+    container.offsetHeight; /* force layout reflow */
 
     const opt = {
       margin: 0,
       filename: filename,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
@@ -1243,14 +1332,19 @@ async function generatePDFBase64() {
   if (typeof html2pdf === 'undefined') return null;
   const container = document.createElement('div');
   container.innerHTML = buildKPHTML();
-  container.style.position = 'absolute';
-  container.style.left = '-9999px';
+  container.style.position = 'fixed';
+  container.style.left = '0';
+  container.style.top = '0';
+  container.style.width = '900px';
+  container.style.opacity = '0';
+  container.style.zIndex = '-9999';
+  container.style.pointerEvents = 'none';
   document.body.appendChild(container);
   try {
     const opt = {
       margin: 0,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
@@ -1271,6 +1365,9 @@ async function generatePDFBase64() {
 const B24_HOOK = COMPANY.b24hook;
 
 async function b24call(method, params = {}) {
+  if (b24context.isEmbedded && typeof BX24 !== 'undefined') {
+    return bx24CallPromise(method, params);
+  }
   const url = B24_HOOK + method;
   const resp = await fetch(url, {
     method: 'POST',
@@ -1367,6 +1464,12 @@ async function attachKPtoDeal(dealId, dealTitle) {
   }
 }
 
+async function attachKPtoCurrentDeal() {
+  if (!b24context.dealId) return;
+  const title = b24context.dealData ? b24context.dealData.TITLE : ('Сделка #' + b24context.dealId);
+  await attachKPtoDeal(b24context.dealId, title);
+}
+
 // ─── COMPARE HELPERS ───
 function addComparePro(side) {
   if (side === 1) state.comparePros1.push('');
@@ -1459,13 +1562,13 @@ function generateComparePDF() {
   if (typeof html2pdf !== 'undefined') {
     const container = document.createElement('div');
     container.innerHTML = kpHTML;
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
+    Object.assign(container.style, { width:'900px', background:'#fff', position:'relative' });
     document.body.appendChild(container);
+    container.offsetHeight; /* force layout reflow */
     const opt = {
       margin: 0, filename: filename,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
@@ -1505,6 +1608,7 @@ function render() {
         <p class="page-sub">Квалификация → Вопросы → КП</p>
       </div>
       <div class="page">
+        ${b24context.isEmbedded && b24context.dealData ? '<div class="b24-banner"><div class="b24-banner-label">Сделка Битрикс24</div><div class="b24-banner-title">' + (b24context.dealData.TITLE || '') + '</div><div class="b24-banner-sub">' + [state.clientName, state.clientCompany].filter(Boolean).join(' · ') + '</div></div>' : ''}
         <div class="section-label">Выберите направление</div>
         ${cards}
         <button class="btn btn-outline" style="margin-top:16px" onclick="state.screen='compare'; state.compareCat1=null; state.compareCat2=null; state.comparePros1=['']; state.comparePros2=['']; state.compareRecommend=0; render();">
@@ -1751,9 +1855,10 @@ function render() {
         <button class="btn" style="background:#6C5CE7;margin-top:8px" onclick="generatePDF()">
           📄 Скачать КП в PDF
         </button>
-        <button class="btn" style="background:#00B894;margin-top:8px" onclick="state.screen='b24'; state.b24deals=[]; state.b24error=''; state.b24success=''; state.b24search=state.clientName||''; render();">
-          🔗 Прикрепить КП к сделке в Б24
-        </button>`;
+        ${b24context.isEmbedded && b24context.dealId
+          ? '<button class="btn" style="background:#00B894;margin-top:8px" onclick="attachKPtoCurrentDeal()">🔗 Прикрепить КП к этой сделке</button>'
+          : '<button class="btn" style="background:#00B894;margin-top:8px" onclick="state.screen=\'b24\'; state.b24deals=[]; state.b24error=\'\'; state.b24success=\'\'; state.b24search=state.clientName||\'\'; render();">🔗 Прикрепить КП к сделке в Б24</button>'
+        }`;
     }
 
     app.innerHTML = `
@@ -2053,9 +2158,45 @@ function render() {
       </div>`;
     return;
   }
+
+  // B24 embedded: авторазмер iframe
+  if (b24context.isEmbedded && typeof BX24 !== 'undefined') {
+    try { BX24.fitWindow(); } catch(e) {}
+  }
+  // B24 embedded: пометить body классом
+  if (b24context.isEmbedded) {
+    document.body.classList.add('b24-embedded');
+  }
 }
 
-render();
+// ─── INIT APP ───
+function initApp() {
+  parseUrlParams();
+
+  if (typeof BX24 !== 'undefined') {
+    try {
+      BX24.init(function() {
+        b24context.isEmbedded = true;
+        var info = BX24.placement.info();
+        if (info && info.options && info.options.ID) {
+          b24context.dealId = info.options.ID;
+          loadDealContext(b24context.dealId);
+        } else {
+          b24context.ready = true;
+          render();
+        }
+      });
+      // Таймаут: если BX24.init не сработал за 2с → standalone
+      setTimeout(function() {
+        if (!b24context.isEmbedded) render();
+      }, 2000);
+    } catch(e) { render(); }
+  } else {
+    render();
+  }
+}
+
+initApp();
 </script>
 </body>
 </html>
