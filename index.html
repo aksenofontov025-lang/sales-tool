@@ -3,7 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>2KConsult — Помощник продаж</title>
+<title>2К Консалтинг — Помощник продаж</title>
+<meta name="description" content="Помощник продаж 2К Консалтинг — квалификация клиентов, подбор услуг и формирование коммерческих предложений">
+<meta property="og:title" content="2К Консалтинг — Помощник продаж">
+<meta property="og:description" content="Инструмент для менеджеров отдела продаж: квалификация, вопросы клиенту, формирование КП">
+<meta property="og:type" content="website">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -89,7 +94,7 @@ body {
 }
 
 /* ─── INPUTS ─── */
-input[type="text"], textarea {
+input[type="text"], input[type="tel"], input[type="email"], textarea, select {
   width: 100%;
   padding: 12px 16px;
   border-radius: 12px;
@@ -101,14 +106,44 @@ input[type="text"], textarea {
   outline: none;
   transition: border-color 0.15s;
 }
-input[type="text"]:focus, textarea:focus {
+input[type="text"]:focus, input[type="tel"]:focus, input[type="email"]:focus, textarea:focus, select:focus {
   border-color: var(--accent);
 }
-input[type="text"] + input[type="text"],
-input[type="text"] + textarea {
-  margin-top: 10px;
-}
+select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='2' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+select option { background: var(--surface); color: var(--text); }
+.client-fields input, .client-fields select, .client-fields textarea { margin-top: 10px; }
+.client-fields input:first-child, .client-fields select:first-child { margin-top: 0; }
+.client-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+@media (max-width: 500px) { .client-row { grid-template-columns: 1fr; } }
 textarea { resize: vertical; min-height: 70px; }
+
+/* ─── CUSTOM PRICES ─── */
+.svc-custom-price { display:flex; align-items:center; gap:6px; margin-top:8px; padding-top:8px; border-top:1px dashed var(--border); }
+.svc-custom-price input[type="number"] { width:130px; padding:6px 10px; font-size:13px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); }
+.svc-custom-price input[type="number"]:focus { border-color: var(--accent); }
+.svc-price-hint { font-size:11px; color:var(--muted); }
+.discount-row { display:flex; align-items:center; gap:8px; margin-top:12px; padding:12px 16px; background:var(--surface); border:1px solid var(--border); border-radius:12px; }
+.discount-row label { font-size:13px; font-weight:600; color:var(--muted); white-space:nowrap; }
+.discount-row input[type="number"] { width:70px; padding:6px 10px; text-align:center; font-size:14px; font-weight:600; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); }
+.discount-row input[type="number"]:focus { border-color: var(--accent); }
+.discount-row span { font-size:14px; color:var(--muted); font-weight:600; }
+.discount-row .discount-saved { font-size:12px; color:var(--success); margin-left:auto; }
+
+/* ─── MULTI-PACKAGE TABS ─── */
+.pkg-switch { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+.pkg-switch-label { font-size:12px; color:var(--muted); font-weight:600; letter-spacing:0.5px; }
+.pkg-switch-btn { padding:6px 14px; font-size:12px; font-weight:600; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; transition:all .2s; }
+.pkg-switch-btn.active { border-color:var(--accent); background:rgba(108,92,231,0.12); color:var(--accent); }
+.pkg-tabs { display:flex; gap:6px; margin-bottom:16px; }
+.pkg-tab { flex:1; padding:10px 8px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface); text-align:center; cursor:pointer; transition:all .2s; }
+.pkg-tab:hover { border-color:rgba(108,92,231,0.3); }
+.pkg-tab.active { border-color:var(--accent); background:rgba(108,92,231,0.08); }
+.pkg-tab input.pkg-name-input { background:transparent; border:none; border-bottom:1px dashed var(--border); color:var(--text); font-size:13px; font-weight:700; text-align:center; width:90%; padding:2px 4px; outline:none; }
+.pkg-tab.active input.pkg-name-input { border-bottom-color:var(--accent); }
+.pkg-tab-total { font-size:11px; color:var(--muted); margin-top:4px; }
+.pkg-summary-table { width:100%; border-collapse:collapse; }
+.pkg-summary-table td { font-size:13px; }
+input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
 
 /* ─── BUTTONS ─── */
 .btn {
@@ -316,6 +351,24 @@ textarea { resize: vertical; min-height: 70px; }
 <div class="toast" id="toast"></div>
 
 <script>
+// ─── COMPANY INFO ───
+const COMPANY = {
+  brand: "2К Консалтинг",
+  brandShort: "2К",
+  brandSub: "Консалтинг",
+  legal: "ИП Ксенофонтов Глеб Александрович",
+  inn: "723001208753",
+  ogrn: "325723200046140",
+  bank: "ООО «Банк Точка»",
+  bik: "044525104",
+  phone: "+7 (901) 417-04-37",
+  email: "kkconsulting2024@ya.ru",
+  telegram: "@kkconsult2",
+  site: "2kconsulting.ru",
+  city: "Санкт-Петербург",
+  b24hook: "https://2kconsult.bitrix24.ru/rest/1/co3ujogzfkd7sczs/"
+};
+
 // ─── DATA ───
 const CATEGORIES = {
   bots: {
@@ -337,11 +390,12 @@ const CATEGORIES = {
       "Бот для обхода ограничений сервисов — ОТКАЗ"
     ],
     pricing: [
-      { name: "Простой кнопочный бот (меню, FAQ)", from: 5000, to: 15000, days: "1–3 дня" },
-      { name: "Бот-консультант с ИИ (базовый)", from: 15000, to: 30000, days: "3–7 дней" },
-      { name: "Бот с ИИ + интеграция CRM", from: 30000, to: 60000, days: "7–14 дней" },
-      { name: "Сложный бот (приём заказов, оплата, админка)", from: 60000, to: 120000, days: "14–30 дней" },
-      { name: "Дообучение существующего ИИ-бота", from: 15000, to: 15000, days: "3–5 дней" }
+      { name: "Чат-бот с кнопками (меню, FAQ)", from: 15000, to: 30000, days: "3–5 дней" },
+      { name: "Чат-бот с ИИ (базовый)", from: 40000, to: 80000, days: "5–10 дней" },
+      { name: "Бот с ИИ + интеграция CRM", from: 50000, to: 100000, days: "7–14 дней" },
+      { name: "Сложный бот (приём заказов, оплата, админка)", from: 80000, to: 150000, days: "14–30 дней" },
+      { name: "Парсер / автоматизация", from: 30000, to: 60000, days: "5–14 дней" },
+      { name: "Дообучение существующего ИИ-бота", from: 15000, to: 30000, days: "3–5 дней" }
     ],
     kpBlocks: [
       "Разработка архитектуры и сценариев бота",
@@ -373,8 +427,8 @@ const CATEGORIES = {
       "Нет понимания, зачем CRM — нужна консультация, возможно нецелевой"
     ],
     pricing: [
-      { name: "Базовая настройка CRM (воронки, поля, права)", from: 30000, to: 60000, days: "3–7 дней" },
-      { name: "Комплекс работ по внедрению CRM", from: 35000, to: 35000, days: "5–10 дней" },
+      { name: "Базовая настройка CRM (воронки, поля, права)", from: 20000, to: 40000, days: "3–7 дней" },
+      { name: "Расширенная настройка CRM + бизнес-процессы", from: 40000, to: 80000, days: "5–14 дней" },
       { name: "Настройка архитектуры Битрикс24", from: 30000, to: 30000, days: "5–7 дней" },
       { name: "Интеграция телефонии", from: 10000, to: 45000, days: "1–7 дней" },
       { name: "Подключение мессенджеров (WA/TG/VK)", from: 10000, to: 20000, days: "1–3 дня" },
@@ -539,7 +593,7 @@ const CATEGORIES = {
     ],
     redFlags: ["Клиент хочет сайт за 3000₽ — управлять ожиданиями или нецелевой"],
     pricing: [
-      { name: "Быстрый запуск сайта (лендинг)", from: 15000, to: 15000, days: "3–5 дней" },
+      { name: "Лендинг / сайт-визитка", from: 15000, to: 40000, days: "3–7 дней" },
       { name: "Дизайн и верстка страницы", from: 5000, to: 10000, days: "2–5 дней" },
       { name: "Доработка сайта по ТЗ", from: 10000, to: 30000, days: "3–10 дней" },
       { name: "Корректировка сайта", from: 3000, to: 10000, days: "1–3 дня" },
@@ -576,6 +630,7 @@ const CATEGORIES = {
       { name: "Настройка BI-аналитики (Power BI / DataLens)", from: 30000, to: 120000, days: "7–14 дней" },
       { name: "Формирование отчёта в Bitrix24", from: 6000, to: 6000, days: "1–3 дня" },
       { name: "Настройка сквозной аналитики", from: 5000, to: 5000, days: "2–5 дней" },
+      { name: "Отчёты и дашборды (комплекс)", from: 20000, to: 50000, days: "5–10 дней" },
       { name: "Разработка дашборда (1 шт)", from: 15000, to: 40000, days: "3–7 дней" }
     ],
     kpBlocks: [
@@ -600,7 +655,8 @@ const CATEGORIES = {
     ],
     redFlags: [],
     pricing: [
-      { name: "Интеграция 1С ↔ Битрикс24", from: 50000, to: 120000, days: "7–14 дней" },
+      { name: "Интеграция 1С + CRM", from: 30000, to: 60000, days: "7–14 дней" },
+      { name: "Интеграция МойСклад + CRM", from: 25000, to: 50000, days: "5–10 дней" },
       { name: "Подготовка внешних интеграций с Битрикс24", from: 20000, to: 20000, days: "3–7 дней" },
       { name: "Интеграция 1С / МойСклад / др. с AMO", from: 10000, to: 50000, days: "3–10 дней" },
       { name: "Интеграция онлайн-банкинга", from: 10000, to: 10000, days: "3–5 дней" },
@@ -629,15 +685,32 @@ const QUAL_CHECKS = [
 ];
 
 // ─── STATE ───
+const CLIENT_SOURCES = [
+  "Авито", "Сайт", "Рекомендация", "Битрикс24 Маркет", "Telegram", "Холодный звонок", "Повторное обращение", "Другое"
+];
+
 let state = {
   screen: "home",
   catKey: null,
   clientName: "",
   clientCompany: "",
   clientContact: "",
+  clientInn: "",
+  clientPhone: "",
+  clientEmail: "",
+  clientSource: "",
   qualChecks: {},
   notes: "",
   selectedServices: {},
+  customPrices: {},
+  discount: 0,
+  multiPackage: false,
+  activePackage: 0,
+  packages: [
+    { name: "Базовый", selectedServices: {}, customPrices: {}, discount: 0 },
+    { name: "Оптимальный", selectedServices: {}, customPrices: {}, discount: 0 },
+    { name: "Премиум", selectedServices: {}, customPrices: {}, discount: 0 }
+  ],
   kpNotes: "",
   b24search: "",
   b24deals: [],
@@ -649,6 +722,103 @@ let state = {
 };
 
 function fmt(n) { return n.toLocaleString("ru-RU"); }
+
+// ─── PACKAGE HELPERS ───
+function getActivePackage() {
+  if (!state.multiPackage) {
+    return { selectedServices: state.selectedServices, customPrices: state.customPrices, discount: state.discount };
+  }
+  return state.packages[state.activePackage];
+}
+
+function getServicePriceFor(i, pkg) {
+  if (pkg.customPrices[i] !== undefined) {
+    return { from: pkg.customPrices[i], to: pkg.customPrices[i] };
+  }
+  const p = CATEGORIES[state.catKey].pricing[i];
+  return { from: p.from, to: p.to };
+}
+
+function getServicePrice(i) {
+  return getServicePriceFor(i, getActivePackage());
+}
+
+function calcTotalFor(pkg) {
+  const cat = CATEGORIES[state.catKey];
+  if (!cat) return { totalFrom: 0, totalTo: 0 };
+  let totalFrom = 0, totalTo = 0;
+  cat.pricing.forEach((p, i) => {
+    if (pkg.selectedServices[i]) {
+      const pr = getServicePriceFor(i, pkg);
+      totalFrom += pr.from;
+      totalTo += pr.to;
+    }
+  });
+  if (pkg.discount > 0 && pkg.discount <= 100) {
+    const mult = 1 - pkg.discount / 100;
+    totalFrom = Math.round(totalFrom * mult);
+    totalTo = Math.round(totalTo * mult);
+  }
+  return { totalFrom, totalTo };
+}
+
+function calcTotal() {
+  return calcTotalFor(getActivePackage());
+}
+
+function toggleService(i) {
+  if (state.multiPackage) {
+    const pkg = state.packages[state.activePackage];
+    pkg.selectedServices[i] = !pkg.selectedServices[i];
+  } else {
+    state.selectedServices[i] = !state.selectedServices[i];
+  }
+  render();
+}
+
+function setCustomPrice(i, value) {
+  const target = state.multiPackage ? state.packages[state.activePackage] : state;
+  if (value) { target.customPrices[i] = Number(value); } else { delete target.customPrices[i]; }
+  updateTotalDOM();
+}
+
+function setDiscount(value) {
+  const d = Number(value) || 0;
+  if (state.multiPackage) { state.packages[state.activePackage].discount = d; } else { state.discount = d; }
+  updateTotalDOM();
+}
+
+function fmtTotal(totalFrom, totalTo) {
+  return totalFrom === totalTo ? fmt(totalFrom) + ' ₽' : fmt(totalFrom) + ' – ' + fmt(totalTo) + ' ₽';
+}
+
+function updateTotalDOM() {
+  const { totalFrom, totalTo } = calcTotal();
+  const el = document.getElementById('kp-total-amount');
+  if (el) el.textContent = fmtTotal(totalFrom, totalTo);
+  // Обновляем итого в табах пакетов
+  if (state.multiPackage) {
+    state.packages.forEach((pkg, pi) => {
+      const tabTotal = document.getElementById('pkg-tab-total-' + pi);
+      if (tabTotal) {
+        const t = calcTotalFor(pkg);
+        const cnt = Object.values(pkg.selectedServices).filter(Boolean).length;
+        tabTotal.textContent = cnt > 0 ? fmtTotal(t.totalFrom, t.totalTo) : 'Не выбрано';
+      }
+    });
+    // Обновляем сводку
+    state.packages.forEach((pkg, pi) => {
+      const summaryRow = document.getElementById('pkg-summary-' + pi);
+      if (summaryRow) {
+        const t = calcTotalFor(pkg);
+        const cnt = Object.values(pkg.selectedServices).filter(Boolean).length;
+        summaryRow.innerHTML = '<td style="font-weight:700;padding:6px 0">' + pkg.name + '</td><td style="padding:6px 0;color:var(--muted)">' + cnt + ' услуг</td><td style="text-align:right;padding:6px 0;font-weight:600">' + (t.totalFrom > 0 ? fmtTotal(t.totalFrom, t.totalTo) : '—') + '</td>';
+      }
+    });
+  }
+  const preview = document.querySelector('.kp-text');
+  if (preview) preview.textContent = getKPText();
+}
 
 function getQualStatus() {
   const c = state.qualChecks;
@@ -697,132 +867,216 @@ function copyText(text) {
 
 function getKPText() {
   const cat = CATEGORIES[state.catKey];
-  const services = cat.pricing.filter((_, i) => state.selectedServices[i]);
-  const totalFrom = services.reduce((s, p) => s + p.from, 0);
-  const totalTo = services.reduce((s, p) => s + p.to, 0);
 
-  let t = `КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ\nот компании 2KConsult\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+  // ─── МУЛЬТИПАКЕТНЫЙ РЕЖИМ ───
+  if (state.multiPackage) {
+    const activePkgs = state.packages.filter(pk => Object.values(pk.selectedServices).some(Boolean));
+    if (activePkgs.length === 0) return '';
+
+    let t = `КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ (${activePkgs.length} вариант${activePkgs.length > 1 ? 'а' : ''})\nот компании ${COMPANY.brand}\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+    if (state.clientName || state.clientCompany) {
+      t += `Для: ${state.clientName}`;
+      if (state.clientCompany) t += ` (${state.clientCompany})`;
+      t += `\n`;
+      if (state.clientInn) t += `ИНН: ${state.clientInn}\n`;
+      if (state.clientPhone) t += `Тел: ${state.clientPhone}\n`;
+      if (state.clientEmail) t += `Email: ${state.clientEmail}\n`;
+      if (state.clientContact) t += `Контакт: ${state.clientContact}\n`;
+      t += `\n`;
+    }
+    t += `Направление: ${cat.name}\n\n`;
+
+    activePkgs.forEach((pk, vi) => {
+      const svcWithIdx = cat.pricing.map((p, i) => ({...p, _idx: i})).filter((_, i) => pk.selectedServices[i]);
+      const total = calcTotalFor(pk);
+      t += `═══ ВАРИАНТ ${vi+1}: ${pk.name} ═══\n\n`;
+      t += `─── СОСТАВ РАБОТ ───\n\n`;
+      svcWithIdx.forEach((s, i) => {
+        const pr = getServicePriceFor(s._idx, pk);
+        const p = pr.from === pr.to ? `${fmt(pr.from)} ₽` : `${fmt(pr.from)} – ${fmt(pr.to)} ₽`;
+        t += `${i+1}. ${s.name}\n   Стоимость: ${p}\n   Сроки: ${s.days}\n\n`;
+      });
+      if (pk.discount > 0) t += `Скидка: ${pk.discount}%\n`;
+      t += total.totalFrom === total.totalTo ? `Итого: ${fmt(total.totalFrom)} ₽\n` : `Итого: от ${fmt(total.totalFrom)} до ${fmt(total.totalTo)} ₽\n`;
+      t += `\n`;
+    });
+
+    t += `─── СРАВНЕНИЕ ВАРИАНТОВ ───\n\n`;
+    activePkgs.forEach((pk, vi) => {
+      const total = calcTotalFor(pk);
+      const cnt = Object.values(pk.selectedServices).filter(Boolean).length;
+      const recommend = activePkgs.length >= 2 && vi === 1 ? ' ★ Рекомендуем' : '';
+      t += `${pk.name}: ${cnt} услуг, ${fmtTotal(total.totalFrom, total.totalTo)}${recommend}\n`;
+    });
+
+    t += `\n─── ЭТАПЫ ПРОЕКТА ───\n\n`;
+    cat.kpBlocks.forEach((b, i) => { t += `${i+1}. ${b}\n`; });
+    if (state.kpNotes) t += `\n─── ПРИМЕЧАНИЯ ───\n\n${state.kpNotes}\n`;
+    t += `\n─── ГАРАНТИИ ───\n\n• Техническая поддержка после сдачи проекта\n• Обучение сотрудников и консультации\n• Работа по договору\n\n`;
+    t += `С уважением, команда ${COMPANY.brand}\nTelegram: ${COMPANY.telegram} | Тел: ${COMPANY.phone}\n${COMPANY.site}`;
+    return t;
+  }
+
+  // ─── ОДНОПАКЕТНЫЙ РЕЖИМ ───
+  const svcWithIdx = cat.pricing.map((p, i) => ({...p, _idx: i})).filter((_, i) => state.selectedServices[i]);
+  const { totalFrom, totalTo } = calcTotal();
+
+  let t = `КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ\nот компании ${COMPANY.brand}\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
   if (state.clientName || state.clientCompany) {
-    t += `Для: ${state.clientName}${state.clientCompany ? ` (${state.clientCompany})` : ""}\n\n`;
+    t += `Для: ${state.clientName}`;
+    if (state.clientCompany) t += ` (${state.clientCompany})`;
+    t += `\n`;
+    if (state.clientInn) t += `ИНН: ${state.clientInn}\n`;
+    if (state.clientPhone) t += `Тел: ${state.clientPhone}\n`;
+    if (state.clientEmail) t += `Email: ${state.clientEmail}\n`;
+    if (state.clientContact) t += `Контакт: ${state.clientContact}\n`;
+    t += `\n`;
   }
   t += `Направление: ${cat.name}\n\n─── СОСТАВ РАБОТ ───\n\n`;
-  services.forEach((s, i) => {
-    const p = s.from === s.to ? `${fmt(s.from)} ₽` : `${fmt(s.from)} – ${fmt(s.to)} ₽`;
+  svcWithIdx.forEach((s, i) => {
+    const pr = getServicePrice(s._idx);
+    const p = pr.from === pr.to ? `${fmt(pr.from)} ₽` : `${fmt(pr.from)} – ${fmt(pr.to)} ₽`;
     t += `${i+1}. ${s.name}\n   Стоимость: ${p}\n   Сроки: ${s.days}\n\n`;
   });
   t += `─── ЭТАПЫ ПРОЕКТА ───\n\n`;
   cat.kpBlocks.forEach((b, i) => { t += `${i+1}. ${b}\n`; });
   t += `\n─── СТОИМОСТЬ ───\n\n`;
+  if (state.discount > 0) t += `Скидка: ${state.discount}%\n`;
   t += totalFrom === totalTo ? `Итого: ${fmt(totalFrom)} ₽\n` : `Итого: от ${fmt(totalFrom)} до ${fmt(totalTo)} ₽\n`;
   if (state.kpNotes) t += `\n─── ПРИМЕЧАНИЯ ───\n\n${state.kpNotes}\n`;
   t += `\n─── ГАРАНТИИ ───\n\n• Техническая поддержка после сдачи проекта\n• Обучение сотрудников и консультации\n• Работа по договору\n\n`;
-  t += `С уважением, команда 2KConsult\nTelegram: @kkconsult2 | Тел: +7 965 477 9129`;
+  t += `С уважением, команда ${COMPANY.brand}\nTelegram: ${COMPANY.telegram} | Тел: ${COMPANY.phone}\n${COMPANY.site}`;
   return t;
 }
 
-function generatePDF() {
+function buildKPHTML() {
   const cat = CATEGORIES[state.catKey];
-  const services = cat.pricing.filter((_, i) => state.selectedServices[i]);
-  const totalFrom = services.reduce((s, p) => s + p.from, 0);
-  const totalTo = services.reduce((s, p) => s + p.to, 0);
-  const totalStr = totalFrom === totalTo ? fmt(totalFrom) + ' ₽' : 'от ' + fmt(totalFrom) + ' до ' + fmt(totalTo) + ' ₽';
   const today = new Date();
   const dateStr = today.toLocaleDateString('ru-RU', {day:'numeric',month:'long',year:'numeric'});
 
-  let servicesRows = '';
-  services.forEach((s, i) => {
-    const p = s.from === s.to ? fmt(s.from) + ' ₽' : fmt(s.from) + ' – ' + fmt(s.to) + ' ₽';
-    servicesRows += '<tr><td style="padding:10px 12px;border-bottom:1px solid #E8E9ED;font-size:13px">' + (i+1) + '</td><td style="padding:10px 12px;border-bottom:1px solid #E8E9ED;font-size:13px">' + s.name + '</td><td style="padding:10px 12px;border-bottom:1px solid #E8E9ED;font-size:13px;white-space:nowrap">' + p + '</td><td style="padding:10px 12px;border-bottom:1px solid #E8E9ED;font-size:13px;white-space:nowrap">' + s.days + '</td></tr>';
-  });
+  // ─── Общие блоки ───
+  const headerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:24px;border-bottom:3px solid #6C5CE7">' +
+    '<div><div style="font-size:28px;font-weight:800;color:#6C5CE7;letter-spacing:-0.5px">' + COMPANY.brandShort + '</div><div style="font-size:14px;font-weight:700;color:#333;margin-top:-2px">' + COMPANY.brandSub + '</div></div>' +
+    '<div style="text-align:right;font-size:12px;color:#666;line-height:1.7"><div style="font-weight:700;color:#333">' + COMPANY.site + '</div>' + COMPANY.phone + '<br>' + COMPANY.email + '<br>' + COMPANY.city + '</div></div>';
+
+  const clientHTML = (state.clientName || state.clientCompany) ? '<div style="margin-top:20px;padding:16px 20px;background:#F4F3FF;border-radius:10px"><div style="font-size:11px;font-weight:700;color:#6C5CE7;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Подготовлено для</div><div style="font-size:16px;font-weight:700;color:#1a1a2e">' + state.clientName + (state.clientCompany ? ' — ' + state.clientCompany : '') + '</div>' + (state.clientInn || state.clientPhone || state.clientEmail || state.clientContact ? '<div style="font-size:12px;color:#666;margin-top:6px;line-height:1.7">' + [state.clientInn ? 'ИНН: ' + state.clientInn : '', state.clientPhone ? 'Тел: ' + state.clientPhone : '', state.clientEmail ? 'Email: ' + state.clientEmail : '', state.clientContact ? 'Контакт: ' + state.clientContact : ''].filter(Boolean).join(' &nbsp;|&nbsp; ') + '</div>' : '') + '</div>' : '';
 
   let stepsHTML = '';
   cat.kpBlocks.forEach((b, i) => {
     stepsHTML += '<div style="display:flex;gap:10px;margin-bottom:8px;align-items:flex-start"><div style="width:24px;height:24px;border-radius:50%;background:#6C5CE7;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">' + (i+1) + '</div><div style="font-size:13px;line-height:1.5;padding-top:3px">' + b + '</div></div>';
   });
 
-  let notesBlock = '';
-  if (state.kpNotes) {
-    notesBlock = '<div style="margin-top:24px;padding:16px 20px;background:#FFF9E6;border-left:4px solid #F0932B;border-radius:0 8px 8px 0"><div style="font-size:11px;font-weight:700;color:#F0932B;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Примечания</div><div style="font-size:13px;line-height:1.6;color:#333">' + state.kpNotes.replace(/\n/g,'<br>') + '</div></div>';
+  const notesBlock = state.kpNotes ? '<div style="margin-top:24px;padding:16px 20px;background:#FFF9E6;border-left:4px solid #F0932B;border-radius:0 8px 8px 0"><div style="font-size:11px;font-weight:700;color:#F0932B;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Примечания</div><div style="font-size:13px;line-height:1.6;color:#333">' + state.kpNotes.replace(/\n/g,'<br>') + '</div></div>' : '';
+
+  const guaranteesHTML = '<div style="margin-top:28px;padding:20px;background:#F0FFF4;border-radius:10px;border:1px solid #C3FAE8"><div style="font-size:11px;font-weight:700;color:#00B894;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">Гарантии</div><div style="font-size:13px;line-height:1.8;color:#333">✓ Техническая поддержка после сдачи проекта<br>✓ Обучение сотрудников и консультации по работе с системой<br>✓ Работа по договору с фиксированной стоимостью<br>✓ Официальные партнёры Битрикс24, AMO CRM, МойСклад, 1С</div></div>';
+
+  const footerHTML = '<div style="margin-top:36px;padding-top:20px;border-top:2px solid #E8E9ED;display:flex;justify-content:space-between;align-items:flex-end"><div style="font-size:11px;color:#999;line-height:1.7">' + COMPANY.legal + '<br>ИНН: ' + COMPANY.inn + ' | ОГРНИП: ' + COMPANY.ogrn + '<br>Банк: ' + COMPANY.bank + ' | БИК: ' + COMPANY.bik + '</div><div style="text-align:right"><div style="font-size:20px;font-weight:800;color:#6C5CE7">' + COMPANY.brandShort + '</div><div style="font-size:10px;color:#999">' + COMPANY.brandSub + '</div></div></div>';
+
+  // ─── Хелпер для таблицы услуг пакета ───
+  function buildPkgTable(pkg, label) {
+    const svcWithIdx = cat.pricing.map((p, i) => ({...p, _idx: i})).filter((_, i) => pkg.selectedServices[i]);
+    if (svcWithIdx.length === 0) return '';
+    const total = calcTotalFor(pkg);
+    const totalStr = fmtTotal(total.totalFrom, total.totalTo);
+    let rows = '';
+    svcWithIdx.forEach((s, i) => {
+      const pr = getServicePriceFor(s._idx, pkg);
+      const p = pr.from === pr.to ? fmt(pr.from) + ' ₽' : fmt(pr.from) + ' – ' + fmt(pr.to) + ' ₽';
+      rows += '<tr><td style="padding:10px 12px;border-bottom:1px solid #E8E9ED;font-size:13px">' + (i+1) + '</td><td style="padding:10px 12px;border-bottom:1px solid #E8E9ED;font-size:13px">' + s.name + '</td><td style="padding:10px 12px;border-bottom:1px solid #E8E9ED;font-size:13px;white-space:nowrap">' + p + '</td><td style="padding:10px 12px;border-bottom:1px solid #E8E9ED;font-size:13px;white-space:nowrap">' + s.days + '</td></tr>';
+    });
+    return '<div style="margin-top:28px">' +
+      (label ? '<div style="font-size:16px;font-weight:800;color:#6C5CE7;margin-bottom:12px;padding:8px 16px;background:#F4F3FF;border-radius:8px">' + label + '</div>' : '<div style="font-size:11px;font-weight:700;color:#666;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px">Состав работ и стоимость</div>') +
+      '<table style="width:100%;border-collapse:collapse;border-radius:10px;overflow:hidden;border:1px solid #E8E9ED"><thead><tr style="background:#6C5CE7;color:#fff"><th style="padding:10px 12px;text-align:left;font-size:12px;font-weight:700">№</th><th style="padding:10px 12px;text-align:left;font-size:12px;font-weight:700">Услуга</th><th style="padding:10px 12px;text-align:left;font-size:12px;font-weight:700">Стоимость</th><th style="padding:10px 12px;text-align:left;font-size:12px;font-weight:700">Сроки</th></tr></thead><tbody>' + rows +
+      (pkg.discount > 0 ? '<tr style="background:#FFF9E6"><td style="padding:8px 12px" colspan="2"><span style="font-size:12px;color:#F0932B">Скидка</span></td><td style="padding:8px 12px;color:#F0932B;font-size:13px" colspan="2">' + pkg.discount + '%</td></tr>' : '') +
+      '<tr style="background:#F4F3FF;font-weight:700"><td style="padding:12px" colspan="2"><strong>ИТОГО</strong></td><td style="padding:12px;color:#6C5CE7;font-size:15px" colspan="2"><strong>' + totalStr + '</strong></td></tr></tbody></table></div>';
   }
 
-  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>КП — 2KConsult</title><style>@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");*{margin:0;padding:0;box-sizing:border-box}body{font-family:Manrope,-apple-system,sans-serif;color:#1a1a2e;background:#fff}@page{size:A4;margin:0}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>' +
-  '<div style="max-width:800px;margin:0 auto;padding:40px 48px">' +
+  // ─── МУЛЬТИПАКЕТНЫЙ РЕЖИМ ───
+  if (state.multiPackage) {
+    const activePkgs = state.packages.filter(pk => Object.values(pk.selectedServices).some(Boolean));
+    let tablesHTML = '';
+    activePkgs.forEach((pk, vi) => {
+      tablesHTML += buildPkgTable(pk, 'Вариант ' + (vi+1) + ': ' + pk.name);
+    });
 
-  // ─── HEADER ───
-  '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:24px;border-bottom:3px solid #6C5CE7">' +
-    '<div>' +
-      '<div style="font-size:28px;font-weight:800;color:#6C5CE7;letter-spacing:-0.5px">2K</div>' +
-      '<div style="font-size:14px;font-weight:700;color:#333;margin-top:-2px">consulting</div>' +
-    '</div>' +
-    '<div style="text-align:right;font-size:12px;color:#666;line-height:1.7">' +
-      '<div style="font-weight:700;color:#333">2kconsulting.ru</div>' +
-      '+7 (901) 417-04-37<br>' +
-      'kkconsulting2024@ya.ru<br>' +
-      'Санкт-Петербург' +
-    '</div>' +
-  '</div>' +
+    // Сравнительная таблица
+    let compareHTML = '<div style="margin-top:28px"><div style="font-size:11px;font-weight:700;color:#666;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px">Сравнение вариантов</div>' +
+      '<table style="width:100%;border-collapse:collapse;border:1px solid #E8E9ED;border-radius:10px;overflow:hidden"><thead><tr style="background:#6C5CE7;color:#fff"><th style="padding:10px 12px;text-align:left;font-size:12px;font-weight:700">Вариант</th><th style="padding:10px 12px;text-align:center;font-size:12px;font-weight:700">Услуг</th><th style="padding:10px 12px;text-align:right;font-size:12px;font-weight:700">Стоимость</th></tr></thead><tbody>';
+    activePkgs.forEach((pk, vi) => {
+      const t = calcTotalFor(pk);
+      const cnt = Object.values(pk.selectedServices).filter(Boolean).length;
+      const isRecommend = activePkgs.length >= 2 && vi === 1;
+      compareHTML += '<tr style="background:' + (isRecommend ? '#F4F3FF' : '#fff') + '"><td style="padding:10px 12px;font-size:13px;font-weight:' + (isRecommend ? '700' : '400') + '">' + pk.name + (isRecommend ? ' <span style="color:#6C5CE7">★ Рекомендуем</span>' : '') + '</td><td style="padding:10px 12px;text-align:center;font-size:13px">' + cnt + '</td><td style="padding:10px 12px;text-align:right;font-size:13px;font-weight:700;color:#6C5CE7">' + fmtTotal(t.totalFrom, t.totalTo) + '</td></tr>';
+    });
+    compareHTML += '</tbody></table></div>';
 
-  // ─── TITLE ───
-  '<div style="margin-top:32px;margin-bottom:8px">' +
-    '<div style="font-size:11px;font-weight:700;color:#6C5CE7;letter-spacing:2px;text-transform:uppercase">Коммерческое предложение</div>' +
-    '<div style="font-size:22px;font-weight:800;color:#1a1a2e;margin-top:8px">' + cat.name + '</div>' +
-    '<div style="font-size:13px;color:#666;margin-top:4px">' + dateStr + '</div>' +
-  '</div>' +
+    return '<div style="max-width:800px;margin:0 auto;padding:40px 48px;font-family:Manrope,-apple-system,sans-serif;color:#1a1a2e;background:#fff">' +
+      headerHTML +
+      '<div style="margin-top:32px;margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:#6C5CE7;letter-spacing:2px;text-transform:uppercase">Коммерческое предложение</div><div style="font-size:22px;font-weight:800;color:#1a1a2e;margin-top:8px">' + cat.name + '</div><div style="font-size:13px;color:#666;margin-top:4px">' + dateStr + ' — ' + activePkgs.length + ' вариант' + (activePkgs.length > 1 ? 'а' : '') + '</div></div>' +
+      clientHTML + tablesHTML + compareHTML +
+      '<div style="margin-top:28px"><div style="font-size:11px;font-weight:700;color:#666;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px">Этапы проекта</div>' + stepsHTML + '</div>' +
+      notesBlock + guaranteesHTML + footerHTML + '</div>';
+  }
 
-  // ─── CLIENT ───
-  (state.clientName || state.clientCompany ? '<div style="margin-top:20px;padding:16px 20px;background:#F4F3FF;border-radius:10px"><div style="font-size:11px;font-weight:700;color:#6C5CE7;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Подготовлено для</div><div style="font-size:16px;font-weight:700;color:#1a1a2e">' + state.clientName + (state.clientCompany ? ' — ' + state.clientCompany : '') + '</div></div>' : '') +
+  // ─── ОДНОПАКЕТНЫЙ РЕЖИМ ───
+  const singlePkg = { selectedServices: state.selectedServices, customPrices: state.customPrices, discount: state.discount };
+  const tableHTML = buildPkgTable(singlePkg, '');
 
-  // ─── TABLE ───
-  '<div style="margin-top:28px"><div style="font-size:11px;font-weight:700;color:#666;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px">Состав работ и стоимость</div>' +
-  '<table style="width:100%;border-collapse:collapse;border-radius:10px;overflow:hidden;border:1px solid #E8E9ED">' +
-  '<thead><tr style="background:#6C5CE7;color:#fff"><th style="padding:10px 12px;text-align:left;font-size:12px;font-weight:700">№</th><th style="padding:10px 12px;text-align:left;font-size:12px;font-weight:700">Услуга</th><th style="padding:10px 12px;text-align:left;font-size:12px;font-weight:700">Стоимость</th><th style="padding:10px 12px;text-align:left;font-size:12px;font-weight:700">Сроки</th></tr></thead>' +
-  '<tbody>' + servicesRows +
-  '<tr style="background:#F4F3FF;font-weight:700"><td style="padding:12px" colspan="2"><strong>ИТОГО</strong></td><td style="padding:12px;color:#6C5CE7;font-size:15px" colspan="2"><strong>' + totalStr + '</strong></td></tr>' +
-  '</tbody></table></div>' +
+  return '<div style="max-width:800px;margin:0 auto;padding:40px 48px;font-family:Manrope,-apple-system,sans-serif;color:#1a1a2e;background:#fff">' +
+    headerHTML +
+    '<div style="margin-top:32px;margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:#6C5CE7;letter-spacing:2px;text-transform:uppercase">Коммерческое предложение</div><div style="font-size:22px;font-weight:800;color:#1a1a2e;margin-top:8px">' + cat.name + '</div><div style="font-size:13px;color:#666;margin-top:4px">' + dateStr + '</div></div>' +
+    clientHTML + tableHTML +
+    '<div style="margin-top:28px"><div style="font-size:11px;font-weight:700;color:#666;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px">Этапы проекта</div>' + stepsHTML + '</div>' +
+    notesBlock + guaranteesHTML + footerHTML + '</div>';
+}
 
-  // ─── STEPS ───
-  '<div style="margin-top:28px"><div style="font-size:11px;font-weight:700;color:#666;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px">Этапы проекта</div>' + stepsHTML + '</div>' +
+function generatePDF() {
+  const cat = CATEGORIES[state.catKey];
+  const kpHTML = buildKPHTML();
+  const filename = 'КП_2К_Консалтинг_' + (state.clientName || cat.name).replace(/\s/g,'_') + '.pdf';
 
-  notesBlock +
+  // html2pdf.js доступен
+  if (typeof html2pdf !== 'undefined') {
+    const container = document.createElement('div');
+    container.innerHTML = kpHTML;
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    document.body.appendChild(container);
 
-  // ─── GUARANTEES ───
-  '<div style="margin-top:28px;padding:20px;background:#F0FFF4;border-radius:10px;border:1px solid #C3FAE8">' +
-    '<div style="font-size:11px;font-weight:700;color:#00B894;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">Гарантии</div>' +
-    '<div style="font-size:13px;line-height:1.8;color:#333">' +
-      '✓ Техническая поддержка после сдачи проекта<br>' +
-      '✓ Обучение сотрудников и консультации по работе с системой<br>' +
-      '✓ Работа по договору с фиксированной стоимостью<br>' +
-      '✓ Официальные партнёры Битрикс24, AMO CRM, МойСклад, 1С' +
-    '</div>' +
-  '</div>' +
+    const opt = {
+      margin: 0,
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
 
-  // ─── FOOTER ───
-  '<div style="margin-top:36px;padding-top:20px;border-top:2px solid #E8E9ED;display:flex;justify-content:space-between;align-items:flex-end">' +
-    '<div style="font-size:11px;color:#999;line-height:1.7">' +
-      'ИП Ксенофонтов Глеб Александрович<br>' +
-      'ИНН: 723001208753 | ОГРНИП: 325723200046140<br>' +
-      'Банк: ООО «Банк Точка» | БИК: 044525104' +
-    '</div>' +
-    '<div style="text-align:right">' +
-      '<div style="font-size:20px;font-weight:800;color:#6C5CE7">2K</div>' +
-      '<div style="font-size:10px;color:#999">consulting</div>' +
-    '</div>' +
-  '</div>' +
+    html2pdf().set(opt).from(container).save().then(() => {
+      document.body.removeChild(container);
+      showToast('✓ PDF сохранён');
+    }).catch(() => {
+      document.body.removeChild(container);
+      generatePDFFallback(kpHTML, filename);
+    });
+  } else {
+    generatePDFFallback(kpHTML, filename);
+  }
+}
 
-  '</div></body></html>';
-
+function generatePDFFallback(kpHTML, filename) {
+  const fullHTML = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>КП — ' + COMPANY.brand + '</title><style>@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");*{margin:0;padding:0;box-sizing:border-box}body{font-family:Manrope,-apple-system,sans-serif;color:#1a1a2e;background:#fff}@page{size:A4;margin:0}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>' + kpHTML + '</body></html>';
   const w = window.open('', '_blank');
   if (w) {
-    w.document.write(html);
+    w.document.write(fullHTML);
     w.document.close();
     setTimeout(() => { w.print(); }, 600);
   } else {
-    // Fallback for popup blockers
-    const blob = new Blob([html], {type: 'text/html'});
+    const blob = new Blob([fullHTML], {type: 'text/html'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'КП_2KConsult_' + (state.clientName || cat.name).replace(/\s/g,'_') + '.html';
+    a.download = filename.replace('.pdf', '.html');
     a.click();
     URL.revokeObjectURL(url);
     showToast("Файл скачан — откройте и нажмите Print → Save as PDF");
@@ -830,7 +1084,7 @@ function generatePDF() {
 }
 
 // ─── BITRIX24 INTEGRATION ───
-const B24_HOOK = 'https://2kconsult.bitrix24.ru/rest/1/co3ujogzfkd7sczs/';
+const B24_HOOK = COMPANY.b24hook;
 
 async function b24call(method, params = {}) {
   const url = B24_HOOK + method;
@@ -881,15 +1135,32 @@ async function attachKPtoDeal(dealId, dealTitle) {
   render();
   try {
     const cat = CATEGORIES[state.catKey];
-    const services = cat.pricing.filter((_, i) => state.selectedServices[i]);
-    const totalFrom = services.reduce((s, p) => s + p.from, 0);
-    const totalTo = services.reduce((s, p) => s + p.to, 0);
+    // В мультирежиме — макс сумма из всех пакетов
+    let maxTotal = 0;
+    let totalSummary = '';
+    if (state.multiPackage) {
+      state.packages.forEach(pk => {
+        const t = calcTotalFor(pk);
+        const val = Math.max(t.totalFrom, t.totalTo);
+        if (val > maxTotal) maxTotal = val;
+      });
+      totalSummary = state.packages.map(pk => {
+        const t = calcTotalFor(pk);
+        const cnt = Object.values(pk.selectedServices).filter(Boolean).length;
+        return pk.name + ': ' + cnt + ' услуг, ' + fmtTotal(t.totalFrom, t.totalTo);
+      }).join('\n');
+    } else {
+      const { totalFrom, totalTo } = calcTotal();
+      maxTotal = Math.max(totalFrom, totalTo);
+      const svcCount = Object.values(state.selectedServices).filter(Boolean).length;
+      totalSummary = svcCount + ' услуг, ' + fmtTotal(totalFrom, totalTo);
+    }
     await b24call('crm.deal.update', {
       id: dealId,
-      fields: { OPPORTUNITY: totalTo > totalFrom ? totalTo : totalFrom }
+      fields: { OPPORTUNITY: maxTotal }
     });
     const kpText = getKPText();
-    const comment = '📋 КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ\n━━━━━━━━━━━━━━━━━━━━━━\nНаправление: ' + cat.icon + ' ' + cat.name + '\nУслуг: ' + services.length + '\nСумма: ' + (totalFrom === totalTo ? fmt(totalFrom) + ' ₽' : 'от ' + fmt(totalFrom) + ' до ' + fmt(totalTo) + ' ₽') + '\n━━━━━━━━━━━━━━━━━━━━━━\n\n' + kpText;
+    const comment = '📋 КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ' + (state.multiPackage ? ' (' + state.packages.length + ' варианта)' : '') + '\n━━━━━━━━━━━━━━━━━━━━━━\nНаправление: ' + cat.icon + ' ' + cat.name + '\n' + totalSummary + '\n━━━━━━━━━━━━━━━━━━━━━━\n\n' + kpText;
     await b24call('crm.timeline.comment.add', {
       fields: { ENTITY_ID: dealId, ENTITY_TYPE: 'deal', COMMENT: comment }
     });
@@ -923,13 +1194,22 @@ function render() {
     }
     app.innerHTML = `
       <div class="page-top">
-        <div class="logo" style="color:#6C5CE7">2KConsult</div>
+        <div class="logo" style="color:#6C5CE7">${COMPANY.brand}</div>
         <h1 class="page-title">Помощник продаж</h1>
         <p class="page-sub">Квалификация → Вопросы → КП</p>
       </div>
       <div class="page">
         <div class="section-label">Выберите направление</div>
         ${cards}
+        <div class="card" style="margin-top:24px;padding:16px 20px;opacity:0.7">
+          <div style="font-size:11px;font-weight:700;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">${COMPANY.brand}</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.8">
+            ${COMPANY.legal}<br>
+            ИНН: ${COMPANY.inn} | ОГРНИП: ${COMPANY.ogrn}<br>
+            ${COMPANY.phone} | ${COMPANY.email}<br>
+            ${COMPANY.site} | Telegram: ${COMPANY.telegram}
+          </div>
+        </div>
       </div>`;
     return;
   }
@@ -969,9 +1249,22 @@ function render() {
       <div class="page">
         <div class="card">
           <div class="card-label">Клиент</div>
-          <input type="text" placeholder="Имя клиента" value="${state.clientName}" oninput="state.clientName=this.value">
-          <input type="text" placeholder="Компания (если есть)" value="${state.clientCompany}" oninput="state.clientCompany=this.value">
-          <input type="text" placeholder="Контакт (телефон / TG / email)" value="${state.clientContact}" oninput="state.clientContact=this.value">
+          <div class="client-fields">
+            <input type="text" placeholder="Имя / ФИО контактного лица" value="${state.clientName}" oninput="state.clientName=this.value">
+            <input type="text" placeholder="Компания" value="${state.clientCompany}" oninput="state.clientCompany=this.value">
+            <div class="client-row">
+              <input type="text" placeholder="ИНН" value="${state.clientInn}" oninput="state.clientInn=this.value">
+              <select onchange="state.clientSource=this.value">
+                <option value="" ${!state.clientSource ? 'selected' : ''} disabled>Источник лида</option>
+                ${CLIENT_SOURCES.map(s => `<option value="${s}" ${state.clientSource===s?'selected':''}>${s}</option>`).join('')}
+              </select>
+            </div>
+            <div class="client-row">
+              <input type="tel" placeholder="Телефон" value="${state.clientPhone}" oninput="state.clientPhone=this.value">
+              <input type="email" placeholder="Email" value="${state.clientEmail}" oninput="state.clientEmail=this.value">
+            </div>
+            <input type="text" placeholder="Telegram / другой контакт" value="${state.clientContact}" oninput="state.clientContact=this.value">
+          </div>
         </div>
         <div class="card">
           <div class="card-label">Чек-лист квалификации</div>
@@ -1019,11 +1312,21 @@ function render() {
   }
 
   if (state.screen === "kp") {
+    const pkg = getActivePackage();
+
     let svcs = cat.pricing.map((p, i) => {
-      const active = state.selectedServices[i];
-      const price = p.from === p.to ? `${fmt(p.from)} ₽` : `от ${fmt(p.from)} ₽`;
+      const active = pkg.selectedServices[i];
+      const origPrice = p.from === p.to ? `${fmt(p.from)} ₽` : `${fmt(p.from)} – ${fmt(p.to)} ₽`;
+      const hasCustom = pkg.customPrices[i] !== undefined;
+      const customInput = active ? `
+            <div class="svc-custom-price" onclick="event.stopPropagation()">
+              <input type="number" min="0" step="1000" placeholder="${p.from}"
+                value="${hasCustom ? pkg.customPrices[i] : ''}"
+                oninput="setCustomPrice(${i}, this.value)">
+              <span class="svc-price-hint">₽ ваша цена</span>
+            </div>` : '';
       return `
-        <div class="card svc-card" onclick="state.selectedServices[${i}]=!state.selectedServices[${i}]; render();"
+        <div class="card svc-card" onclick="toggleService(${i})"
              style="border-color:${active ? cat.color : 'var(--border)'}; background:${active ? cat.color+'0C' : 'var(--surface)'}">
           <div class="svc-row">
             <div class="check-box" style="border-color:${active ? cat.color : 'var(--border)'}; background:${active ? cat.color : 'transparent'}; margin-top:1px">
@@ -1032,27 +1335,77 @@ function render() {
             <div style="flex:1">
               <div class="svc-name">${p.name}</div>
               <div class="svc-meta">
-                <span class="svc-price" style="color:${cat.color}">${price}</span>
+                <span class="svc-price" style="color:${cat.color}${hasCustom ? ';text-decoration:line-through;opacity:0.5' : ''}">${origPrice}</span>
                 <span class="svc-time">⏱ ${p.days}</span>
-              </div>
+                ${hasCustom ? `<span class="svc-price" style="color:${cat.color};font-weight:700"> → ${fmt(pkg.customPrices[i])} ₽</span>` : ''}
+              </div>${customInput}
             </div>
           </div>
         </div>`;
     }).join("");
 
-    const services = cat.pricing.filter((_, i) => state.selectedServices[i]);
-    const totalFrom = services.reduce((s, p) => s + p.from, 0);
-    const totalTo = services.reduce((s, p) => s + p.to, 0);
+    const selCount = Object.values(pkg.selectedServices).filter(Boolean).length;
+    const { totalFrom, totalTo } = calcTotal();
 
+    // ─── Package mode switch + tabs ───
+    let pkgHeader = `
+      <div class="pkg-switch">
+        <span class="pkg-switch-label">Режим КП:</span>
+        <button class="pkg-switch-btn ${!state.multiPackage ? 'active' : ''}" onclick="state.multiPackage=false; render();">📄 Один пакет</button>
+        <button class="pkg-switch-btn ${state.multiPackage ? 'active' : ''}" onclick="if(!state.multiPackage){state.packages[0].selectedServices={...state.selectedServices};state.packages[0].customPrices={...state.customPrices};state.packages[0].discount=state.discount;state.activePackage=0;} state.multiPackage=true; render();">📦 Варианты (A/B/C)</button>
+      </div>`;
+
+    let pkgTabs = '';
+    if (state.multiPackage) {
+      pkgTabs = '<div class="pkg-tabs">' + state.packages.map((pk, pi) => {
+        const t = calcTotalFor(pk);
+        const cnt = Object.values(pk.selectedServices).filter(Boolean).length;
+        const isActive = state.activePackage === pi;
+        return `<div class="pkg-tab ${isActive ? 'active' : ''}" onclick="state.activePackage=${pi}; render();">
+          <input class="pkg-name-input" value="${pk.name}" onclick="event.stopPropagation()" oninput="state.packages[${pi}].name=this.value">
+          <div class="pkg-tab-total" id="pkg-tab-total-${pi}">${cnt > 0 ? fmtTotal(t.totalFrom, t.totalTo) : 'Не выбрано'}</div>
+        </div>`;
+      }).join('') + '</div>';
+    }
+
+    // ─── Total block ───
     let totalBlock = "";
-    if (services.length > 0) {
-      const totalStr = totalFrom === totalTo ? `${fmt(totalFrom)} ₽` : `${fmt(totalFrom)} – ${fmt(totalTo)} ₽`;
+    const anySelected = state.multiPackage
+      ? state.packages.some(pk => Object.values(pk.selectedServices).some(Boolean))
+      : selCount > 0;
+
+    if (anySelected) {
+      const totalStr = fmtTotal(totalFrom, totalTo);
       const kpText = getKPText().replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+      // Сводка по пакетам (в мультирежиме)
+      let pkgSummary = '';
+      if (state.multiPackage) {
+        pkgSummary = `
+          <div class="card" style="background:var(--surface);margin-bottom:12px">
+            <div class="card-label">Сводка по вариантам</div>
+            <table class="pkg-summary-table">
+              ${state.packages.map((pk, pi) => {
+                const t = calcTotalFor(pk);
+                const cnt = Object.values(pk.selectedServices).filter(Boolean).length;
+                return `<tr id="pkg-summary-${pi}"><td style="font-weight:700;padding:6px 0">${pk.name}</td><td style="padding:6px 0;color:var(--muted)">${cnt} услуг</td><td style="text-align:right;padding:6px 0;font-weight:600">${t.totalFrom > 0 ? fmtTotal(t.totalFrom, t.totalTo) : '—'}</td></tr>`;
+              }).join('')}
+            </table>
+          </div>`;
+      }
+
       totalBlock = `
+        ${pkgSummary}
         <div class="card total-card" style="background:${cat.color}12; border-color:${cat.color}44">
-          <div class="card-label">Итого</div>
-          <div class="total-amount" style="color:${cat.color}">${totalStr}</div>
-          <div class="total-count">Выбрано услуг: ${services.length}</div>
+          <div class="card-label">${state.multiPackage ? 'Итого — ' + state.packages[state.activePackage].name : 'Итого'}</div>
+          <div class="total-amount" id="kp-total-amount" style="color:${cat.color}">${totalStr}</div>
+          <div class="total-count">Выбрано услуг: ${selCount}</div>
+          <div class="discount-row" onclick="event.stopPropagation()">
+            <label>Скидка</label>
+            <input type="number" min="0" max="100" value="${pkg.discount || ''}" placeholder="0"
+              oninput="setDiscount(this.value)">
+            <span>%</span>
+          </div>
         </div>
         <div class="card">
           <div class="card-label">Примечания к КП</div>
@@ -1082,12 +1435,14 @@ function render() {
         </div>
       </div></div>
       <div class="page">
-        <div class="section-label">Выберите услуги</div>
+        ${pkgHeader}
+        ${pkgTabs}
+        <div class="section-label">${state.multiPackage ? state.packages[state.activePackage].name + ' — выберите услуги' : 'Выберите услуги'}</div>
         ${svcs}
         ${totalBlock}
         <div class="btn-row" style="margin-top:16px">
           <button class="btn btn-outline" onclick="state.screen='questions'; render();">← Вопросы</button>
-          <button class="btn btn-outline" onclick="state={screen:'home',catKey:null,clientName:'',clientCompany:'',clientContact:'',qualChecks:{},notes:'',selectedServices:{},kpNotes:'',b24search:'',b24deals:[],b24loading:false,b24error:'',b24sending:false,b24success:'',b24dealLink:''}; render();">⟲ Новый клиент</button>
+          <button class="btn btn-outline" onclick="state={screen:'home',catKey:null,clientName:'',clientCompany:'',clientContact:'',clientInn:'',clientPhone:'',clientEmail:'',clientSource:'',qualChecks:{},notes:'',selectedServices:{},customPrices:{},discount:0,multiPackage:false,activePackage:0,packages:[{name:'Базовый',selectedServices:{},customPrices:{},discount:0},{name:'Оптимальный',selectedServices:{},customPrices:{},discount:0},{name:'Премиум',selectedServices:{},customPrices:{},discount:0}],kpNotes:'',b24search:'',b24deals:[],b24loading:false,b24error:'',b24sending:false,b24success:'',b24dealLink:''}; render();">⟲ Новый клиент</button>
         </div>
       </div>`;
     return;
@@ -1096,10 +1451,16 @@ function render() {
   // ─── BITRIX24 SCREEN ───
   if (state.screen === "b24") {
     const cat = CATEGORIES[state.catKey];
-    const services = cat.pricing.filter((_, i) => state.selectedServices[i]);
-    const totalFrom = services.reduce((s, p) => s + p.from, 0);
-    const totalTo = services.reduce((s, p) => s + p.to, 0);
-    const totalStr = totalFrom === totalTo ? fmt(totalFrom) + ' ₽' : fmt(totalFrom) + ' – ' + fmt(totalTo) + ' ₽';
+    let totalStr = '';
+    if (state.multiPackage) {
+      totalStr = state.packages.map(pk => {
+        const t = calcTotalFor(pk);
+        return pk.name + ': ' + fmtTotal(t.totalFrom, t.totalTo);
+      }).join(' | ');
+    } else {
+      const { totalFrom, totalTo } = calcTotal();
+      totalStr = fmtTotal(totalFrom, totalTo);
+    }
 
     let content = '';
 
@@ -1110,7 +1471,7 @@ function render() {
         '<div style="font-size:14px;color:var(--muted);margin-bottom:16px">Сделка: ' + state.b24success + '</div>' +
         '<a href="' + state.b24dealLink + '" target="_blank" style="display:inline-block;padding:12px 24px;background:var(--success);color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px">Открыть сделку в Б24 →</a>' +
       '</div>' +
-      '<button class="btn btn-outline" style="margin-top:12px" onclick="state={screen:\'home\',catKey:null,clientName:\'\',clientCompany:\'\',clientContact:\'\',qualChecks:{},notes:\'\',selectedServices:{},kpNotes:\'\',b24search:\'\',b24deals:[],b24loading:false,b24error:\'\',b24sending:false,b24success:\'\',b24dealLink:\'\'}; render();">⟲ Новый клиент</button>';
+      '<button class="btn btn-outline" style="margin-top:12px" onclick="state={screen:\'home\',catKey:null,clientName:\'\',clientCompany:\'\',clientContact:\'\',clientInn:\'\',clientPhone:\'\',clientEmail:\'\',clientSource:\'\',qualChecks:{},notes:\'\',selectedServices:{},customPrices:{},discount:0,multiPackage:false,activePackage:0,packages:[{name:\'Базовый\',selectedServices:{},customPrices:{},discount:0},{name:\'Оптимальный\',selectedServices:{},customPrices:{},discount:0},{name:\'Премиум\',selectedServices:{},customPrices:{},discount:0}],kpNotes:\'\',b24search:\'\',b24deals:[],b24loading:false,b24error:\'\',b24sending:false,b24success:\'\',b24dealLink:\'\'}; render();">⟲ Новый клиент</button>';
     } else {
       content = '<div class="card" style="border-color:#00B894;background:rgba(0,184,148,0.06)">' +
         '<div style="font-size:13px;color:var(--text);line-height:1.6">🔗 Найдите сделку в Битрикс24 и прикрепите КП.<br><strong>Сумма: ' + totalStr + '</strong> | ' + cat.icon + ' ' + cat.name + '</div>' +
