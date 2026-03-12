@@ -2161,7 +2161,12 @@ function render() {
 
   // B24 embedded: авторазмер iframe
   if (b24context.isEmbedded && typeof BX24 !== 'undefined') {
-    try { BX24.fitWindow(); } catch(e) {}
+    try {
+      var h = Math.max(document.body.scrollHeight, 900);
+      BX24.resizeWindow(document.body.scrollWidth || 900, h);
+    } catch(e) {
+      try { BX24.fitWindow(); } catch(e2) {}
+    }
   }
   // B24 embedded: пометить body классом
   if (b24context.isEmbedded) {
