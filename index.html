@@ -2177,6 +2177,16 @@ function initApp() {
     try {
       BX24.init(function() {
         b24context.isEmbedded = true;
+
+        // Авто-регистрация вкладки в карточке сделки
+        BX24.callMethod('placement.bind', {
+          PLACEMENT: 'CRM_DEAL_DETAIL_TAB',
+          HANDLER: window.location.origin + '/',
+          TITLE: 'Помощник продаж'
+        }, function(res) {
+          console.log('placement.bind:', res.data ? 'ok' : res.error());
+        });
+
         var info = BX24.placement.info();
         if (info && info.options && info.options.ID) {
           b24context.dealId = info.options.ID;
