@@ -180,6 +180,23 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
 .compare-recommend label:hover { border-color:rgba(108,92,231,0.3); }
 .compare-recommend input[type="radio"] { accent-color:var(--accent); }
 .compare-recommend label.active { border-color:var(--accent); background:rgba(108,92,231,0.08); }
+.history-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px 20px; margin-bottom:12px; }
+.history-meta { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.history-type { display:flex; align-items:center; gap:6px; font-size:13px; font-weight:700; }
+.history-date { font-size:12px; color:var(--muted); }
+.history-client { font-size:15px; font-weight:700; margin-bottom:4px; }
+.history-cat { font-size:13px; color:var(--muted); margin-bottom:6px; }
+.history-total { font-size:14px; font-weight:700; color:var(--accent); margin-bottom:12px; }
+.history-actions { display:flex; gap:8px; }
+.history-actions button { flex:1; padding:8px 12px; border:1px solid var(--border); border-radius:8px; background:var(--surface2); color:var(--text); font-size:12px; font-weight:600; cursor:pointer; min-height:44px; }
+.history-actions button:active { transform:scale(0.97); }
+.history-empty { text-align:center; padding:40px 20px; color:var(--muted); font-size:14px; }
+.guide-step { display:flex; gap:14px; padding:14px 0; border-bottom:1px solid var(--border); }
+.guide-step:last-child { border-bottom:none; }
+.guide-num { width:28px; height:28px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; flex-shrink:0; margin-top:2px; }
+.guide-content { flex:1; }
+.guide-title { font-size:14px; font-weight:700; margin-bottom:4px; }
+.guide-desc { font-size:13px; color:var(--muted); line-height:1.5; }
 
 /* ─── BUTTONS ─── */
 .btn {
@@ -896,6 +913,48 @@ function updateStagesDOM() {
   if (preview) preview.textContent = getKPText();
 }
 
+// ─── HISTORY (localStorage) ───
+function saveToHistory(type, extra) {
+  try {
+    const history = JSON.parse(localStorage.getItem('kp_history') || '[]');
+    const cat = state.catKey ? CATEGORIES[state.catKey] : null;
+    const tot = state.catKey ? calcTotal() : { totalFrom: 0, totalTo: 0 };
+    const pkg = state.catKey ? getActivePackage() : null;
+    const entry = {
+      id: Date.now(),
+      date: new Date().toISOString(),
+      type: type,
+      catKey: state.catKey,
+      catName: cat ? (cat.icon + ' ' + cat.name) : null,
+      clientName: state.clientName || '',
+      clientCompany: state.clientCompany || '',
+      totalFrom: tot.totalFrom,
+      totalTo: tot.totalTo,
+      discount: pkg ? (pkg.discount || 0) : 0,
+      servicesCount: pkg ? Object.values(pkg.selectedServices).filter(Boolean).length : 0,
+      text: type === 'compare' ? getCompareText() : (state.catKey ? getKPText() : ''),
+      ...(extra || {})
+    };
+    history.unshift(entry);
+    if (history.length > 50) history.length = 50;
+    localStorage.setItem('kp_history', JSON.stringify(history));
+  } catch(e) { /* localStorage unavailable */ }
+}
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem('kp_history') || '[]'); } catch(e) { return []; }
+}
+function deleteHistoryItem(id) {
+  try {
+    const h = getHistory().filter(x => x.id !== id);
+    localStorage.setItem('kp_history', JSON.stringify(h));
+  } catch(e) {}
+  render();
+}
+function clearHistory() {
+  try { localStorage.removeItem('kp_history'); } catch(e) {}
+  render();
+}
+
 function getQualStatus() {
   const c = state.qualChecks;
   if (c.spam) return "red";
@@ -1151,6 +1210,7 @@ function generatePDF() {
     html2pdf().set(opt).from(container).save().then(() => {
       document.body.removeChild(container);
       showToast('✓ PDF сохранён');
+      saveToHistory('pdf');
     }).catch(() => {
       document.body.removeChild(container);
       generatePDFFallback(kpHTML, filename);
@@ -1297,6 +1357,7 @@ async function attachKPtoDeal(dealId, dealTitle) {
     state.b24sending = false;
     state.b24success = dealTitle;
     state.b24dealLink = 'https://2kconsult.bitrix24.ru/crm/deal/details/' + dealId + '/';
+    saveToHistory('b24', { dealTitle: dealTitle });
     render();
     showToast(pdfBase64 ? '✓ КП + PDF прикреплены к сделке!' : '✓ КП прикреплено (без PDF)');
   } catch (e) {
@@ -1411,6 +1472,7 @@ function generateComparePDF() {
     html2pdf().set(opt).from(container).save().then(() => {
       document.body.removeChild(container);
       showToast('✓ PDF сохранён');
+      saveToHistory('compare', { compareCats: [CATEGORIES[state.compareCat1]?.name, CATEGORIES[state.compareCat2]?.name] });
     }).catch(() => {
       document.body.removeChild(container);
       showToast('Ошибка генерации PDF');
@@ -1447,6 +1509,12 @@ function render() {
         ${cards}
         <button class="btn btn-outline" style="margin-top:16px" onclick="state.screen='compare'; state.compareCat1=null; state.compareCat2=null; state.comparePros1=['']; state.comparePros2=['']; state.compareRecommend=0; render();">
           ⚖️ Сравнить два направления
+        </button>
+        <button class="btn btn-outline" style="margin-top:8px" onclick="state.screen='history'; render();">
+          📋 История КП${getHistory().length ? ' (' + getHistory().length + ')' : ''}
+        </button>
+        <button class="btn btn-outline" style="margin-top:8px" onclick="state.screen='guide'; render();">
+          ℹ️ Инструкция
         </button>
         <div class="card" style="margin-top:24px;padding:16px 20px;opacity:0.7">
           <div style="font-size:11px;font-weight:700;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">${COMPANY.brand}</div>
@@ -1677,7 +1745,7 @@ function render() {
           <div class="card-label">Предпросмотр КП</div>
           <pre class="kp-text">${kpText}</pre>
         </div>
-        <button class="btn" style="background:${cat.color}" onclick="copyText(getKPText())">
+        <button class="btn" style="background:${cat.color}" onclick="copyText(getKPText()); saveToHistory('text');">
           📋 Скопировать КП (текст)
         </button>
         <button class="btn" style="background:#6C5CE7;margin-top:8px" onclick="generatePDF()">
@@ -1792,6 +1860,101 @@ function render() {
     return;
   }
 
+  // ─── HISTORY SCREEN ───
+  if (state.screen === "history") {
+    const history = getHistory();
+    const typeIcon = { text: '📋', pdf: '📄', b24: '🔗', compare: '⚖️' };
+    const typeLabel = { text: 'Текст КП', pdf: 'PDF КП', b24: 'Отправлено в Б24', compare: 'Сравнение' };
+    let historyCards = '';
+    if (history.length === 0) {
+      historyCards = '<div class="history-empty">📭 Нет сохранённых КП<br><span style="font-size:12px;margin-top:8px;display:block">Сформируйте КП и скопируйте, скачайте PDF или отправьте в Б24 — запись появится здесь автоматически</span></div>';
+    } else {
+      historyCards = history.map(h => {
+        const d = new Date(h.date);
+        const dateStr = d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }) + ' ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        const clientLine = [h.clientName, h.clientCompany].filter(Boolean).join(' — ') || 'Без клиента';
+        const catLine = h.catName ? (h.catName + (h.servicesCount ? ' · ' + h.servicesCount + ' усл.' : '')) : (h.compareCats ? h.compareCats.join(' vs ') : '');
+        const totalLine = (h.totalFrom || h.totalTo) ? (h.totalFrom === h.totalTo ? fmt(h.totalFrom) + ' ₽' : fmt(h.totalFrom) + ' – ' + fmt(h.totalTo) + ' ₽') + (h.discount ? ' (скидка ' + h.discount + '%)' : '') : '';
+        const dealLine = h.dealTitle ? '<div style="font-size:12px;color:var(--success);margin-bottom:4px">→ ' + h.dealTitle + '</div>' : '';
+        return `<div class="history-card">
+          <div class="history-meta">
+            <div class="history-type">${typeIcon[h.type] || '📋'} ${typeLabel[h.type] || h.type}</div>
+            <div class="history-date">${dateStr}</div>
+          </div>
+          <div class="history-client">${clientLine}</div>
+          <div class="history-cat">${catLine}</div>
+          ${totalLine ? '<div class="history-total">' + totalLine + '</div>' : ''}
+          ${dealLine}
+          <div class="history-actions">
+            <button onclick="copyText(getHistory().find(x=>x.id===${h.id})?.text||''); showToast('✓ Скопировано');">📋 Скопировать</button>
+            <button onclick="deleteHistoryItem(${h.id})" style="color:var(--danger)">🗑 Удалить</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    app.innerHTML = `
+      <div class="header"><div class="header-row">
+        <button class="back-btn" onclick="state.screen='home'; render();">←</button>
+        <div><div class="page-sub" style="color:var(--accent)">📋 История</div>
+        <div class="page-title">История КП</div></div>
+      </div></div>
+      <div class="page">
+        ${historyCards}
+        ${history.length > 0 ? '<button class="btn btn-outline" style="margin-top:16px;color:var(--danger);border-color:var(--danger)" onclick="if(confirm(\'Очистить всю историю?\')) clearHistory();">🗑 Очистить историю</button>' : ''}
+        <button class="btn btn-outline" style="margin-top:8px" onclick="state.screen='home'; render();">← На главную</button>
+      </div>`;
+    return;
+  }
+
+  // ─── GUIDE SCREEN ───
+  if (state.screen === "guide") {
+    const steps = [
+      { title: 'Выберите направление', desc: 'На главном экране выберите категорию услуг: Боты с ИИ, Битрикс24, AMO CRM, 1С и другие. Каждая категория содержит свой прайс и этапы.' },
+      { title: 'Квалифицируйте клиента', desc: 'Заполните имя, компанию и контакт клиента. Отметьте чек-лист квалификации: бюджет, сроки, ЛПР, потребность. Статус (Целевой/Тёплый/Нецелевой) определится автоматически.' },
+      { title: 'Задайте вопросы', desc: 'Ознакомьтесь со списком вопросов для выявления потребностей клиента. Красные флаги помогут распознать нецелевые обращения.' },
+      { title: 'Сформируйте КП', desc: 'Выберите услуги, установите свои цены при необходимости. Используйте режим «Варианты (A/B/C)» для нескольких пакетов. Укажите скидку.' },
+      { title: 'Настройте сроки', desc: 'Отредактируйте сроки по каждому этапу проекта. Общий срок пересчитается автоматически. Сроки отобразятся в PDF как календарный план.' },
+      { title: 'Отправьте КП', desc: '3 способа: 📋 Скопировать текст (для Telegram/WhatsApp), 📄 Скачать PDF (для email), 🔗 Прикрепить к сделке в Б24 (с PDF-файлом).' },
+      { title: 'Сравните направления', desc: 'Кнопка «⚖️ Сравнить два направления» — для случаев, когда клиенту подходят 2 разных решения. Укажите плюсы каждого и рекомендацию.' },
+      { title: 'История КП', desc: 'Все сформированные КП сохраняются автоматически. Кнопка «📋 История КП» на главном экране — просмотр, копирование, удаление прошлых КП.' }
+    ];
+    const stepsHTML = steps.map((s, i) => `
+      <div class="guide-step">
+        <div class="guide-num">${i + 1}</div>
+        <div class="guide-content">
+          <div class="guide-title">${s.title}</div>
+          <div class="guide-desc">${s.desc}</div>
+        </div>
+      </div>
+    `).join('');
+
+    app.innerHTML = `
+      <div class="header"><div class="header-row">
+        <button class="back-btn" onclick="state.screen='home'; render();">←</button>
+        <div><div class="page-sub" style="color:var(--accent)">ℹ️ Помощь</div>
+        <div class="page-title">Инструкция</div></div>
+      </div></div>
+      <div class="page">
+        <div class="card">
+          <div class="card-label">Как пользоваться</div>
+          ${stepsHTML}
+        </div>
+        <div class="card" style="margin-top:16px;padding:16px 20px">
+          <div class="card-label">Советы</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.8">
+            💡 Используйте свою цену — кликните на услугу и укажите сумму<br>
+            💡 Режим A/B/C — предложите клиенту 3 варианта с разным набором<br>
+            💡 Скидка — укажите % и итого пересчитается<br>
+            💡 PDF автоматически прикрепляется к сделке в Б24<br>
+            💡 Инструмент работает офлайн — данные в браузере
+          </div>
+        </div>
+        <button class="btn btn-outline" style="margin-top:16px" onclick="state.screen='home'; render();">← На главную</button>
+      </div>`;
+    return;
+  }
+
   // ─── COMPARE SCREEN ───
   if (state.screen === "compare") {
     const catKeys = Object.keys(CATEGORIES);
@@ -1827,7 +1990,7 @@ function render() {
           <div class="card-label">Предпросмотр</div>
           <pre class="kp-text">${compareText}</pre>
         </div>
-        <button class="btn" style="background:var(--accent)" onclick="copyText(getCompareText())">
+        <button class="btn" style="background:var(--accent)" onclick="copyText(getCompareText()); saveToHistory('compare', { compareCats: [CATEGORIES[state.compareCat1]?.name, CATEGORIES[state.compareCat2]?.name] });">
           📋 Скопировать (текст)
         </button>
         <button class="btn" style="background:#6C5CE7;margin-top:8px" onclick="generateComparePDF()">
