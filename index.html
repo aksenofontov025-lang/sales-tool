@@ -27,6 +27,7 @@
   --warning: #FCC419;
 }
 
+html, body { overflow-x: hidden; }
 body {
   font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg);
@@ -34,12 +35,16 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 .app {
   max-width: 540px;
   margin: 0 auto;
-  padding-bottom: 40px;
+  padding-bottom: calc(40px + env(safe-area-inset-bottom));
 }
 
 /* ─── HEADER ─── */
@@ -48,7 +53,7 @@ body {
   top: 0;
   z-index: 100;
   background: linear-gradient(180deg, var(--bg) 85%, transparent);
-  padding: 16px 20px 20px;
+  padding: calc(16px + env(safe-area-inset-top)) 20px 20px;
 }
 .header-row {
   display: flex;
@@ -63,6 +68,11 @@ body {
   cursor: pointer;
   padding: 4px 8px 4px 0;
   line-height: 1;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .header-info { flex: 1; }
 .header-cat {
@@ -101,7 +111,7 @@ input[type="text"], input[type="tel"], input[type="email"], textarea, select {
   border: 1px solid var(--border);
   background: var(--surface2);
   color: var(--text);
-  font-size: 15px;
+  font-size: 16px;
   font-family: inherit;
   outline: none;
   transition: border-color 0.15s;
@@ -119,12 +129,12 @@ textarea { resize: vertical; min-height: 70px; }
 
 /* ─── CUSTOM PRICES ─── */
 .svc-custom-price { display:flex; align-items:center; gap:6px; margin-top:8px; padding-top:8px; border-top:1px dashed var(--border); }
-.svc-custom-price input[type="number"] { width:130px; padding:6px 10px; font-size:13px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); }
+.svc-custom-price input[type="number"] { width:130px; padding:6px 10px; font-size:16px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); }
 .svc-custom-price input[type="number"]:focus { border-color: var(--accent); }
 .svc-price-hint { font-size:11px; color:var(--muted); }
 .discount-row { display:flex; align-items:center; gap:8px; margin-top:12px; padding:12px 16px; background:var(--surface); border:1px solid var(--border); border-radius:12px; }
 .discount-row label { font-size:13px; font-weight:600; color:var(--muted); white-space:nowrap; }
-.discount-row input[type="number"] { width:70px; padding:6px 10px; text-align:center; font-size:14px; font-weight:600; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); }
+.discount-row input[type="number"] { width:70px; padding:6px 10px; text-align:center; font-size:16px; font-weight:600; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); }
 .discount-row input[type="number"]:focus { border-color: var(--accent); }
 .discount-row span { font-size:14px; color:var(--muted); font-weight:600; }
 .discount-row .discount-saved { font-size:12px; color:var(--success); margin-left:auto; }
@@ -138,12 +148,38 @@ textarea { resize: vertical; min-height: 70px; }
 .pkg-tab { flex:1; padding:10px 8px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface); text-align:center; cursor:pointer; transition:all .2s; }
 .pkg-tab:hover { border-color:rgba(108,92,231,0.3); }
 .pkg-tab.active { border-color:var(--accent); background:rgba(108,92,231,0.08); }
-.pkg-tab input.pkg-name-input { background:transparent; border:none; border-bottom:1px dashed var(--border); color:var(--text); font-size:13px; font-weight:700; text-align:center; width:90%; padding:2px 4px; outline:none; }
+.pkg-tab input.pkg-name-input { background:transparent; border:none; border-bottom:1px dashed var(--border); color:var(--text); font-size:16px; font-weight:700; text-align:center; width:90%; padding:2px 4px; outline:none; }
 .pkg-tab.active input.pkg-name-input { border-bottom-color:var(--accent); }
 .pkg-tab-total { font-size:11px; color:var(--muted); margin-top:4px; }
 .pkg-summary-table { width:100%; border-collapse:collapse; }
 .pkg-summary-table td { font-size:13px; }
 input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
+
+/* ─── STAGES ─── */
+.stage-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
+.stage-row:last-of-type { border-bottom:none; }
+.stage-num { width:24px; height:24px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+.stage-name { flex:1; font-size:13px; line-height:1.4; }
+.stage-days { display:flex; align-items:center; gap:4px; flex-shrink:0; }
+.stage-days input { width:55px; padding:4px 6px; text-align:center; font-size:16px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text); }
+.stage-days input:focus { border-color:var(--accent); }
+.stage-days span { font-size:12px; color:var(--muted); }
+.stage-total { margin-top:12px; padding:10px 16px; background:rgba(108,92,231,0.08); border-radius:8px; font-size:13px; font-weight:700; color:var(--accent); }
+
+/* ─── COMPARE ─── */
+.compare-cols { display:flex; gap:16px; margin-bottom:16px; }
+.compare-col { flex:1; }
+.compare-col .card { height:100%; }
+.compare-pros-item { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+.compare-pros-item input { flex:1; font-size:16px; padding:8px 12px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); }
+.compare-pros-item input:focus { border-color:var(--accent); }
+.compare-pros-item button { width:32px; height:32px; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.compare-pros-item button:hover { border-color:var(--accent); color:var(--accent); }
+.compare-recommend { display:flex; gap:8px; margin-top:12px; }
+.compare-recommend label { flex:1; display:flex; align-items:center; gap:8px; padding:10px 14px; border:1.5px solid var(--border); border-radius:10px; cursor:pointer; font-size:13px; font-weight:600; transition:all .2s; }
+.compare-recommend label:hover { border-color:rgba(108,92,231,0.3); }
+.compare-recommend input[type="radio"] { accent-color:var(--accent); }
+.compare-recommend label.active { border-color:var(--accent); background:rgba(108,92,231,0.08); }
 
 /* ─── BUTTONS ─── */
 .btn {
@@ -153,6 +189,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
   gap: 8px;
   width: 100%;
   padding: 14px 20px;
+  min-height: 44px;
   border-radius: 12px;
   border: none;
   font-size: 15px;
@@ -173,7 +210,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
   gap: 10px;
   margin-top: 12px;
 }
-.btn-row .btn { flex: 1; font-size: 13px; padding: 12px 10px; }
+.btn-row .btn { flex: 1; font-size: 13px; padding: 12px 10px; min-height: 44px; }
 
 /* ─── BADGE ─── */
 .badge {
@@ -342,7 +379,15 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
 @media (max-width: 400px) {
   .page-title { font-size: 24px; }
   .total-amount { font-size: 24px; }
+  .btn-row { flex-direction: column; }
+  .btn-row .btn { width: 100%; }
+  .pkg-tabs { gap: 4px; }
+  .pkg-tab { padding: 8px 4px; }
+  .pkg-tab input.pkg-name-input { font-size: 14px; }
+  .compare-cols { flex-direction: column; }
 }
+.page { -webkit-overflow-scrolling: touch; }
+.kp-text { max-height: 350px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 </style>
 </head>
 <body>
@@ -398,12 +443,12 @@ const CATEGORIES = {
       { name: "Дообучение существующего ИИ-бота", from: 15000, to: 30000, days: "3–5 дней" }
     ],
     kpBlocks: [
-      "Разработка архитектуры и сценариев бота",
-      "Подключение ИИ-модели и настройка промптов",
-      "Интеграция с CRM / мессенджерами / платёжными системами",
-      "Тестирование и отладка",
-      "Обучение по управлению ботом",
-      "Техническая поддержка 14 дней после запуска"
+      { name: "Разработка архитектуры и сценариев бота", days: 2 },
+      { name: "Подключение ИИ-модели и настройка промптов", days: 3 },
+      { name: "Интеграция с CRM / мессенджерами / платёжными системами", days: 3 },
+      { name: "Тестирование и отладка", days: 2 },
+      { name: "Обучение по управлению ботом", days: 1 },
+      { name: "Техническая поддержка 14 дней после запуска", days: 14 }
     ]
   },
   bitrix: {
@@ -446,15 +491,15 @@ const CATEGORIES = {
       { name: "Сопровождение Профи (SLA 2ч)", from: 247500, to: 247500, days: "ежемесячно" }
     ],
     kpBlocks: [
-      "Аудит текущих бизнес-процессов",
-      "Проектирование архитектуры CRM",
-      "Настройка воронок продаж и туннелей",
-      "Настройка прав доступа и ролей",
-      "Интеграция каналов коммуникации",
-      "Автоматизация (роботы, бизнес-процессы)",
-      "Обучение сотрудников и формирование базы знаний",
-      "Тестирование и запуск",
-      "Техническая поддержка 2 месяца"
+      { name: "Аудит текущих бизнес-процессов", days: 2 },
+      { name: "Проектирование архитектуры CRM", days: 3 },
+      { name: "Настройка воронок продаж и туннелей", days: 3 },
+      { name: "Настройка прав доступа и ролей", days: 1 },
+      { name: "Интеграция каналов коммуникации", days: 2 },
+      { name: "Автоматизация (роботы, бизнес-процессы)", days: 3 },
+      { name: "Обучение сотрудников и формирование базы знаний", days: 2 },
+      { name: "Тестирование и запуск", days: 2 },
+      { name: "Техническая поддержка 2 месяца", days: 60 }
     ]
   },
   amo: {
@@ -480,12 +525,12 @@ const CATEGORIES = {
       { name: "Лицензия AMO Расширенный (12 мес)", from: 59950, to: 59950, days: "—" }
     ],
     kpBlocks: [
-      "Аудит текущих процессов продаж",
-      "Настройка воронок и стадий сделок",
-      "Подключение каналов коммуникации",
-      "Интеграция с внешними системами",
-      "Обучение менеджеров",
-      "Техническая поддержка 14 дней"
+      { name: "Аудит текущих процессов продаж", days: 2 },
+      { name: "Настройка воронок и стадий сделок", days: 3 },
+      { name: "Подключение каналов коммуникации", days: 2 },
+      { name: "Интеграция с внешними системами", days: 3 },
+      { name: "Обучение менеджеров", days: 1 },
+      { name: "Техническая поддержка 14 дней", days: 14 }
     ]
   },
   oneC: {
@@ -527,15 +572,15 @@ const CATEGORIES = {
       { name: "Ежемесячное сопровождение 1С", from: 15000, to: 40000, days: "ежемесячно" }
     ],
     kpBlocks: [
-      "Аудит текущей инфраструктуры и бизнес-процессов",
-      "Подбор конфигурации и режима работы",
-      "Настройка учётной политики, организаций и складов",
-      "Настройка номенклатуры и справочников",
-      "Подключение оборудования и интеграций",
-      "Миграция данных",
-      "Тестирование на реальных операциях",
-      "Обучение сотрудников и формирование базы знаний",
-      "Техническая поддержка 14 дней после запуска"
+      { name: "Аудит текущей инфраструктуры и бизнес-процессов", days: 2 },
+      { name: "Подбор конфигурации и режима работы", days: 1 },
+      { name: "Настройка учётной политики, организаций и складов", days: 3 },
+      { name: "Настройка номенклатуры и справочников", days: 3 },
+      { name: "Подключение оборудования и интеграций", days: 3 },
+      { name: "Миграция данных", days: 3 },
+      { name: "Тестирование на реальных операциях", days: 2 },
+      { name: "Обучение сотрудников и формирование базы знаний", days: 2 },
+      { name: "Техническая поддержка 14 дней после запуска", days: 14 }
     ]
   },
   moysklad: {
@@ -569,13 +614,13 @@ const CATEGORIES = {
       { name: "Лицензия Базовый (12 мес)", from: 8640, to: 34560, days: "—" }
     ],
     kpBlocks: [
-      "Аудит бизнес-процессов склада и торговли",
-      "Настройка структуры складов и номенклатуры",
-      "Настройка точек продаж и кассового оборудования",
-      "Импорт базы товаров",
-      "Настройка прав доступа",
-      "Обучение сотрудников",
-      "Тестирование и запуск"
+      { name: "Аудит бизнес-процессов склада и торговли", days: 2 },
+      { name: "Настройка структуры складов и номенклатуры", days: 3 },
+      { name: "Настройка точек продаж и кассового оборудования", days: 2 },
+      { name: "Импорт базы товаров", days: 2 },
+      { name: "Настройка прав доступа", days: 1 },
+      { name: "Обучение сотрудников", days: 1 },
+      { name: "Тестирование и запуск", days: 2 }
     ]
   },
   sites: {
@@ -605,13 +650,13 @@ const CATEGORIES = {
       { name: "Лицензия 1С-Битрикс Управление сайтом", from: 4475, to: 4475, days: "—" }
     ],
     kpBlocks: [
-      "Анализ требований и проектирование",
-      "Дизайн-макет",
-      "Верстка и разработка",
-      "Наполнение контентом",
-      "Тестирование и адаптация",
-      "Запуск и настройка хостинга",
-      "Техническая поддержка 14 дней"
+      { name: "Анализ требований и проектирование", days: 2 },
+      { name: "Дизайн-макет", days: 3 },
+      { name: "Верстка и разработка", days: 5 },
+      { name: "Наполнение контентом", days: 2 },
+      { name: "Тестирование и адаптация", days: 2 },
+      { name: "Запуск и настройка хостинга", days: 1 },
+      { name: "Техническая поддержка 14 дней", days: 14 }
     ]
   },
   analytics: {
@@ -634,12 +679,12 @@ const CATEGORIES = {
       { name: "Разработка дашборда (1 шт)", from: 15000, to: 40000, days: "3–7 дней" }
     ],
     kpBlocks: [
-      "Аудит источников данных",
-      "Проектирование структуры дашбордов",
-      "Настройка подключений к данным",
-      "Разработка визуализаций и фильтров",
-      "Тестирование и корректировка",
-      "Обучение пользователей"
+      { name: "Аудит источников данных", days: 2 },
+      { name: "Проектирование структуры дашбордов", days: 2 },
+      { name: "Настройка подключений к данным", days: 2 },
+      { name: "Разработка визуализаций и фильтров", days: 3 },
+      { name: "Тестирование и корректировка", days: 2 },
+      { name: "Обучение пользователей", days: 1 }
     ]
   },
   integrations: {
@@ -664,13 +709,13 @@ const CATEGORIES = {
       { name: "Индивидуальные доработки (самописный блок)", from: 30000, to: 100000, days: "7–21 день" }
     ],
     kpBlocks: [
-      "Анализ архитектуры текущих систем",
-      "Проектирование схемы интеграции",
-      "Разработка и настройка обмена данными",
-      "Тестирование на реальных данных",
-      "Запуск и мониторинг",
-      "Документация и обучение",
-      "Техническая поддержка 14 дней"
+      { name: "Анализ архитектуры текущих систем", days: 2 },
+      { name: "Проектирование схемы интеграции", days: 2 },
+      { name: "Разработка и настройка обмена данными", days: 5 },
+      { name: "Тестирование на реальных данных", days: 2 },
+      { name: "Запуск и мониторинг", days: 1 },
+      { name: "Документация и обучение", days: 1 },
+      { name: "Техническая поддержка 14 дней", days: 14 }
     ]
   }
 };
@@ -711,6 +756,7 @@ let state = {
     { name: "Оптимальный", selectedServices: {}, customPrices: {}, discount: 0 },
     { name: "Премиум", selectedServices: {}, customPrices: {}, discount: 0 }
   ],
+  customDays: {},
   kpNotes: "",
   b24search: "",
   b24deals: [],
@@ -718,7 +764,12 @@ let state = {
   b24error: "",
   b24sending: false,
   b24success: "",
-  b24dealLink: ""
+  b24dealLink: "",
+  compareCat1: null,
+  compareCat2: null,
+  comparePros1: [""],
+  comparePros2: [""],
+  compareRecommend: 0
 };
 
 function fmt(n) { return n.toLocaleString("ru-RU"); }
@@ -820,6 +871,31 @@ function updateTotalDOM() {
   if (preview) preview.textContent = getKPText();
 }
 
+// ─── STAGE HELPERS ───
+function getStageName(i) {
+  const b = CATEGORIES[state.catKey].kpBlocks[i];
+  return typeof b === 'object' ? b.name : b;
+}
+
+function getStageDays(i) {
+  if (state.customDays[i] !== undefined) return state.customDays[i];
+  const b = CATEGORIES[state.catKey].kpBlocks[i];
+  return typeof b === 'object' ? b.days : 0;
+}
+
+function calcTotalDays() {
+  const cat = CATEGORIES[state.catKey];
+  if (!cat) return 0;
+  return cat.kpBlocks.reduce((sum, b, i) => sum + getStageDays(i), 0);
+}
+
+function updateStagesDOM() {
+  const el = document.getElementById('stages-total');
+  if (el) el.textContent = 'Общий срок: ~' + calcTotalDays() + ' рабочих дней';
+  const preview = document.querySelector('.kp-text');
+  if (preview) preview.textContent = getKPText();
+}
+
 function getQualStatus() {
   const c = state.qualChecks;
   if (c.spam) return "red";
@@ -910,7 +986,12 @@ function getKPText() {
     });
 
     t += `\n─── ЭТАПЫ ПРОЕКТА ───\n\n`;
-    cat.kpBlocks.forEach((b, i) => { t += `${i+1}. ${b}\n`; });
+    cat.kpBlocks.forEach((b, i) => {
+      const name = getStageName(i);
+      const days = getStageDays(i);
+      t += `${i+1}. ${name}` + (days ? ` — ${days} дн.` : '') + `\n`;
+    });
+    t += `\nОбщий срок проекта: ~${calcTotalDays()} рабочих дней\n`;
     if (state.kpNotes) t += `\n─── ПРИМЕЧАНИЯ ───\n\n${state.kpNotes}\n`;
     t += `\n─── ГАРАНТИИ ───\n\n• Техническая поддержка после сдачи проекта\n• Обучение сотрудников и консультации\n• Работа по договору\n\n`;
     t += `С уважением, команда ${COMPANY.brand}\nTelegram: ${COMPANY.telegram} | Тел: ${COMPANY.phone}\n${COMPANY.site}`;
@@ -939,7 +1020,12 @@ function getKPText() {
     t += `${i+1}. ${s.name}\n   Стоимость: ${p}\n   Сроки: ${s.days}\n\n`;
   });
   t += `─── ЭТАПЫ ПРОЕКТА ───\n\n`;
-  cat.kpBlocks.forEach((b, i) => { t += `${i+1}. ${b}\n`; });
+  cat.kpBlocks.forEach((b, i) => {
+    const name = getStageName(i);
+    const days = getStageDays(i);
+    t += `${i+1}. ${name}` + (days ? ` — ${days} дн.` : '') + `\n`;
+  });
+  t += `\nОбщий срок проекта: ~${calcTotalDays()} рабочих дней\n`;
   t += `\n─── СТОИМОСТЬ ───\n\n`;
   if (state.discount > 0) t += `Скидка: ${state.discount}%\n`;
   t += totalFrom === totalTo ? `Итого: ${fmt(totalFrom)} ₽\n` : `Итого: от ${fmt(totalFrom)} до ${fmt(totalTo)} ₽\n`;
@@ -962,9 +1048,19 @@ function buildKPHTML() {
   const clientHTML = (state.clientName || state.clientCompany) ? '<div style="margin-top:20px;padding:16px 20px;background:#F4F3FF;border-radius:10px"><div style="font-size:11px;font-weight:700;color:#6C5CE7;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Подготовлено для</div><div style="font-size:16px;font-weight:700;color:#1a1a2e">' + state.clientName + (state.clientCompany ? ' — ' + state.clientCompany : '') + '</div>' + (state.clientInn || state.clientPhone || state.clientEmail || state.clientContact ? '<div style="font-size:12px;color:#666;margin-top:6px;line-height:1.7">' + [state.clientInn ? 'ИНН: ' + state.clientInn : '', state.clientPhone ? 'Тел: ' + state.clientPhone : '', state.clientEmail ? 'Email: ' + state.clientEmail : '', state.clientContact ? 'Контакт: ' + state.clientContact : ''].filter(Boolean).join(' &nbsp;|&nbsp; ') + '</div>' : '') + '</div>' : '';
 
   let stepsHTML = '';
+  let cumDays = 0;
+  const totalDays = calcTotalDays();
   cat.kpBlocks.forEach((b, i) => {
-    stepsHTML += '<div style="display:flex;gap:10px;margin-bottom:8px;align-items:flex-start"><div style="width:24px;height:24px;border-radius:50%;background:#6C5CE7;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">' + (i+1) + '</div><div style="font-size:13px;line-height:1.5;padding-top:3px">' + b + '</div></div>';
+    const name = getStageName(i);
+    const days = getStageDays(i);
+    stepsHTML += '<div style="display:flex;gap:12px;margin-bottom:10px;align-items:center">' +
+      '<div style="width:24px;height:24px;border-radius:50%;background:#6C5CE7;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">' + (i+1) + '</div>' +
+      '<div style="flex:1"><div style="font-size:13px;line-height:1.5;font-weight:600">' + name + '</div>' +
+      (days ? '<div style="font-size:11px;color:#999">Дни ' + (cumDays+1) + '–' + (cumDays+days) + ' (' + days + ' дн.)</div>' : '') + '</div>' +
+      (days ? '<div style="width:60px;text-align:right;font-size:12px;font-weight:600;color:#6C5CE7">' + days + ' дн.</div>' : '') + '</div>';
+    cumDays += days;
   });
+  stepsHTML += '<div style="margin-top:12px;padding:10px 16px;background:#F4F3FF;border-radius:8px;font-size:13px;font-weight:700;color:#6C5CE7">Общий срок проекта: ~' + totalDays + ' рабочих дней</div>';
 
   const notesBlock = state.kpNotes ? '<div style="margin-top:24px;padding:16px 20px;background:#FFF9E6;border-left:4px solid #F0932B;border-radius:0 8px 8px 0"><div style="font-size:11px;font-weight:700;color:#F0932B;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Примечания</div><div style="font-size:13px;line-height:1.6;color:#333">' + state.kpNotes.replace(/\n/g,'<br>') + '</div></div>' : '';
 
@@ -1083,6 +1179,34 @@ function generatePDFFallback(kpHTML, filename) {
   }
 }
 
+async function generatePDFBase64() {
+  if (typeof html2pdf === 'undefined') return null;
+  const container = document.createElement('div');
+  container.innerHTML = buildKPHTML();
+  container.style.position = 'absolute';
+  container.style.left = '-9999px';
+  document.body.appendChild(container);
+  try {
+    const opt = {
+      margin: 0,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+    const pdfBlob = await html2pdf().set(opt).from(container).outputPdf('blob');
+    document.body.removeChild(container);
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.readAsDataURL(pdfBlob);
+    });
+  } catch (e) {
+    if (container.parentNode) document.body.removeChild(container);
+    return null;
+  }
+}
+
 // ─── BITRIX24 INTEGRATION ───
 const B24_HOOK = COMPANY.b24hook;
 
@@ -1159,20 +1283,140 @@ async function attachKPtoDeal(dealId, dealTitle) {
       id: dealId,
       fields: { OPPORTUNITY: maxTotal }
     });
+    // Генерируем PDF base64
+    let pdfBase64 = null;
+    try { pdfBase64 = await generatePDFBase64(); } catch(e) { /* fallback: без PDF */ }
+    const pdfFilename = 'КП_' + COMPANY.brandShort + '_' + (state.clientName || cat.name).replace(/\s/g,'_') + '.pdf';
     const kpText = getKPText();
     const comment = '📋 КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ' + (state.multiPackage ? ' (' + state.packages.length + ' варианта)' : '') + '\n━━━━━━━━━━━━━━━━━━━━━━\nНаправление: ' + cat.icon + ' ' + cat.name + '\n' + totalSummary + '\n━━━━━━━━━━━━━━━━━━━━━━\n\n' + kpText;
-    await b24call('crm.timeline.comment.add', {
-      fields: { ENTITY_ID: dealId, ENTITY_TYPE: 'deal', COMMENT: comment }
-    });
+    const commentFields = { ENTITY_ID: dealId, ENTITY_TYPE: 'deal', COMMENT: comment };
+    if (pdfBase64) {
+      commentFields.FILES = [['document:' + pdfFilename, pdfBase64]];
+    }
+    await b24call('crm.timeline.comment.add', { fields: commentFields });
     state.b24sending = false;
     state.b24success = dealTitle;
     state.b24dealLink = 'https://2kconsult.bitrix24.ru/crm/deal/details/' + dealId + '/';
     render();
-    showToast('✓ КП прикреплено к сделке!');
+    showToast(pdfBase64 ? '✓ КП + PDF прикреплены к сделке!' : '✓ КП прикреплено (без PDF)');
   } catch (e) {
     state.b24sending = false;
     state.b24error = 'Ошибка: ' + e.message;
     render();
+  }
+}
+
+// ─── COMPARE HELPERS ───
+function addComparePro(side) {
+  if (side === 1) state.comparePros1.push('');
+  else state.comparePros2.push('');
+  render();
+}
+function removeComparePro(side, idx) {
+  if (side === 1 && state.comparePros1.length > 1) state.comparePros1.splice(idx, 1);
+  else if (side === 2 && state.comparePros2.length > 1) state.comparePros2.splice(idx, 1);
+  render();
+}
+function setComparePro(side, idx, val) {
+  if (side === 1) state.comparePros1[idx] = val;
+  else state.comparePros2[idx] = val;
+}
+
+function getCompareText() {
+  const c1 = state.compareCat1 ? CATEGORIES[state.compareCat1] : null;
+  const c2 = state.compareCat2 ? CATEGORIES[state.compareCat2] : null;
+  if (!c1 || !c2) return '';
+  let t = `СРАВНЕНИЕ НАПРАВЛЕНИЙ\nот компании ${COMPANY.brand}\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+  if (state.clientName || state.clientCompany) {
+    t += `Для: ${state.clientName}`;
+    if (state.clientCompany) t += ` (${state.clientCompany})`;
+    t += '\n\n';
+  }
+  const pros1 = state.comparePros1.filter(p => p.trim());
+  const pros2 = state.comparePros2.filter(p => p.trim());
+  t += `═══ ВАРИАНТ 1: ${c1.icon} ${c1.name} ═══\n\n`;
+  pros1.forEach(p => { t += `✓ ${p}\n`; });
+  if (pros1.length === 0) t += '(не указаны)\n';
+  t += `\n═══ ВАРИАНТ 2: ${c2.icon} ${c2.name} ═══\n\n`;
+  pros2.forEach(p => { t += `✓ ${p}\n`; });
+  if (pros2.length === 0) t += '(не указаны)\n';
+  if (state.compareRecommend === 1) t += `\n★ Рекомендуем: ${c1.name}\n`;
+  else if (state.compareRecommend === 2) t += `\n★ Рекомендуем: ${c2.name}\n`;
+  t += `\n─── КОНТАКТЫ ───\n\n${COMPANY.brand}\nТел: ${COMPANY.phone}\nTelegram: ${COMPANY.telegram}\n${COMPANY.site}`;
+  return t;
+}
+
+function buildCompareHTML() {
+  const c1 = CATEGORIES[state.compareCat1];
+  const c2 = CATEGORIES[state.compareCat2];
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('ru-RU', {day:'numeric',month:'long',year:'numeric'});
+  const pros1 = state.comparePros1.filter(p => p.trim());
+  const pros2 = state.comparePros2.filter(p => p.trim());
+
+  const headerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:24px;border-bottom:3px solid #6C5CE7">' +
+    '<div><div style="font-size:28px;font-weight:800;color:#6C5CE7;letter-spacing:-0.5px">' + COMPANY.brandShort + '</div><div style="font-size:14px;font-weight:700;color:#333;margin-top:-2px">' + COMPANY.brandSub + '</div></div>' +
+    '<div style="text-align:right;font-size:12px;color:#666;line-height:1.7"><div style="font-weight:700;color:#333">' + COMPANY.site + '</div>' + COMPANY.phone + '<br>' + COMPANY.email + '</div></div>';
+
+  const clientHTML = (state.clientName || state.clientCompany) ? '<div style="margin-top:20px;padding:16px 20px;background:#F4F3FF;border-radius:10px"><div style="font-size:11px;font-weight:700;color:#6C5CE7;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Подготовлено для</div><div style="font-size:16px;font-weight:700;color:#1a1a2e">' + state.clientName + (state.clientCompany ? ' — ' + state.clientCompany : '') + '</div></div>' : '';
+
+  function prosListHTML(pros, color) {
+    return pros.map(p => '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px"><div style="color:' + color + ';font-size:16px;flex-shrink:0">✓</div><div style="font-size:13px;line-height:1.5">' + p + '</div></div>').join('');
+  }
+
+  const isRec1 = state.compareRecommend === 1;
+  const isRec2 = state.compareRecommend === 2;
+
+  const colsHTML = '<div style="display:flex;gap:20px;margin-top:28px">' +
+    '<div style="flex:1;padding:20px;border:2px solid ' + (isRec1 ? '#6C5CE7' : '#E8E9ED') + ';border-radius:12px;' + (isRec1 ? 'background:#F4F3FF' : '') + '">' +
+      '<div style="font-size:20px;text-align:center;margin-bottom:8px">' + c1.icon + '</div>' +
+      '<div style="font-size:16px;font-weight:800;text-align:center;color:#1a1a2e;margin-bottom:4px">' + c1.name + '</div>' +
+      (isRec1 ? '<div style="text-align:center;font-size:12px;color:#6C5CE7;font-weight:700;margin-bottom:12px">★ Рекомендуем</div>' : '<div style="margin-bottom:12px"></div>') +
+      '<div style="border-top:1px solid #E8E9ED;padding-top:12px">' + prosListHTML(pros1, c1.color) + '</div>' +
+    '</div>' +
+    '<div style="flex:1;padding:20px;border:2px solid ' + (isRec2 ? '#6C5CE7' : '#E8E9ED') + ';border-radius:12px;' + (isRec2 ? 'background:#F4F3FF' : '') + '">' +
+      '<div style="font-size:20px;text-align:center;margin-bottom:8px">' + c2.icon + '</div>' +
+      '<div style="font-size:16px;font-weight:800;text-align:center;color:#1a1a2e;margin-bottom:4px">' + c2.name + '</div>' +
+      (isRec2 ? '<div style="text-align:center;font-size:12px;color:#6C5CE7;font-weight:700;margin-bottom:12px">★ Рекомендуем</div>' : '<div style="margin-bottom:12px"></div>') +
+      '<div style="border-top:1px solid #E8E9ED;padding-top:12px">' + prosListHTML(pros2, c2.color) + '</div>' +
+    '</div></div>';
+
+  const footerHTML = '<div style="margin-top:36px;padding-top:20px;border-top:2px solid #E8E9ED;font-size:11px;color:#999;line-height:1.7">' + COMPANY.legal + ' | ИНН: ' + COMPANY.inn + '<br>' + COMPANY.phone + ' | ' + COMPANY.email + ' | ' + COMPANY.site + '</div>';
+
+  return '<div style="max-width:800px;margin:0 auto;padding:40px 48px;font-family:Manrope,-apple-system,sans-serif;color:#1a1a2e;background:#fff">' +
+    headerHTML +
+    '<div style="margin-top:32px"><div style="font-size:11px;font-weight:700;color:#6C5CE7;letter-spacing:2px;text-transform:uppercase">Сравнение направлений</div><div style="font-size:22px;font-weight:800;color:#1a1a2e;margin-top:8px">' + c1.name + ' vs ' + c2.name + '</div><div style="font-size:13px;color:#666;margin-top:4px">' + dateStr + '</div></div>' +
+    clientHTML + colsHTML + footerHTML + '</div>';
+}
+
+function generateComparePDF() {
+  const c1 = CATEGORIES[state.compareCat1];
+  const c2 = CATEGORIES[state.compareCat2];
+  const kpHTML = buildCompareHTML();
+  const filename = 'Сравнение_' + c1.name + '_vs_' + c2.name + '.pdf';
+
+  if (typeof html2pdf !== 'undefined') {
+    const container = document.createElement('div');
+    container.innerHTML = kpHTML;
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    document.body.appendChild(container);
+    const opt = {
+      margin: 0, filename: filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+    html2pdf().set(opt).from(container).save().then(() => {
+      document.body.removeChild(container);
+      showToast('✓ PDF сохранён');
+    }).catch(() => {
+      document.body.removeChild(container);
+      showToast('Ошибка генерации PDF');
+    });
+  } else {
+    generatePDFFallback(kpHTML, filename);
   }
 }
 
@@ -1201,6 +1445,9 @@ function render() {
       <div class="page">
         <div class="section-label">Выберите направление</div>
         ${cards}
+        <button class="btn btn-outline" style="margin-top:16px" onclick="state.screen='compare'; state.compareCat1=null; state.compareCat2=null; state.comparePros1=['']; state.comparePros2=['']; state.compareRecommend=0; render();">
+          ⚖️ Сравнить два направления
+        </button>
         <div class="card" style="margin-top:24px;padding:16px 20px;opacity:0.7">
           <div style="font-size:11px;font-weight:700;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">${COMPANY.brand}</div>
           <div style="font-size:12px;color:var(--muted);line-height:1.8">
@@ -1408,6 +1655,21 @@ function render() {
           </div>
         </div>
         <div class="card">
+          <div class="card-label">Этапы проекта и сроки</div>
+          ${cat.kpBlocks.map((b, i) => `
+            <div class="stage-row">
+              <div class="stage-num">${i+1}</div>
+              <div class="stage-name">${getStageName(i)}</div>
+              <div class="stage-days" onclick="event.stopPropagation()">
+                <input type="number" min="1" max="365" value="${state.customDays[i] !== undefined ? state.customDays[i] : getStageDays(i)}"
+                  oninput="state.customDays[${i}]=this.value?Number(this.value):undefined; updateStagesDOM();">
+                <span>дн.</span>
+              </div>
+            </div>
+          `).join('')}
+          <div class="stage-total" id="stages-total">Общий срок: ~${calcTotalDays()} рабочих дней</div>
+        </div>
+        <div class="card">
           <div class="card-label">Примечания к КП</div>
           <textarea placeholder="Дополнительные условия, скидки, особенности..." oninput="state.kpNotes=this.value">${state.kpNotes}</textarea>
         </div>
@@ -1442,7 +1704,7 @@ function render() {
         ${totalBlock}
         <div class="btn-row" style="margin-top:16px">
           <button class="btn btn-outline" onclick="state.screen='questions'; render();">← Вопросы</button>
-          <button class="btn btn-outline" onclick="state={screen:'home',catKey:null,clientName:'',clientCompany:'',clientContact:'',clientInn:'',clientPhone:'',clientEmail:'',clientSource:'',qualChecks:{},notes:'',selectedServices:{},customPrices:{},discount:0,multiPackage:false,activePackage:0,packages:[{name:'Базовый',selectedServices:{},customPrices:{},discount:0},{name:'Оптимальный',selectedServices:{},customPrices:{},discount:0},{name:'Премиум',selectedServices:{},customPrices:{},discount:0}],kpNotes:'',b24search:'',b24deals:[],b24loading:false,b24error:'',b24sending:false,b24success:'',b24dealLink:''}; render();">⟲ Новый клиент</button>
+          <button class="btn btn-outline" onclick="state={screen:'home',catKey:null,clientName:'',clientCompany:'',clientContact:'',clientInn:'',clientPhone:'',clientEmail:'',clientSource:'',qualChecks:{},notes:'',selectedServices:{},customPrices:{},discount:0,customDays:{},multiPackage:false,activePackage:0,packages:[{name:'Базовый',selectedServices:{},customPrices:{},discount:0},{name:'Оптимальный',selectedServices:{},customPrices:{},discount:0},{name:'Премиум',selectedServices:{},customPrices:{},discount:0}],kpNotes:'',b24search:'',b24deals:[],b24loading:false,b24error:'',b24sending:false,b24success:'',b24dealLink:''}; render();">⟲ Новый клиент</button>
         </div>
       </div>`;
     return;
@@ -1471,7 +1733,7 @@ function render() {
         '<div style="font-size:14px;color:var(--muted);margin-bottom:16px">Сделка: ' + state.b24success + '</div>' +
         '<a href="' + state.b24dealLink + '" target="_blank" style="display:inline-block;padding:12px 24px;background:var(--success);color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px">Открыть сделку в Б24 →</a>' +
       '</div>' +
-      '<button class="btn btn-outline" style="margin-top:12px" onclick="state={screen:\'home\',catKey:null,clientName:\'\',clientCompany:\'\',clientContact:\'\',clientInn:\'\',clientPhone:\'\',clientEmail:\'\',clientSource:\'\',qualChecks:{},notes:\'\',selectedServices:{},customPrices:{},discount:0,multiPackage:false,activePackage:0,packages:[{name:\'Базовый\',selectedServices:{},customPrices:{},discount:0},{name:\'Оптимальный\',selectedServices:{},customPrices:{},discount:0},{name:\'Премиум\',selectedServices:{},customPrices:{},discount:0}],kpNotes:\'\',b24search:\'\',b24deals:[],b24loading:false,b24error:\'\',b24sending:false,b24success:\'\',b24dealLink:\'\'}; render();">⟲ Новый клиент</button>';
+      '<button class="btn btn-outline" style="margin-top:12px" onclick="state={screen:\'home\',catKey:null,clientName:\'\',clientCompany:\'\',clientContact:\'\',clientInn:\'\',clientPhone:\'\',clientEmail:\'\',clientSource:\'\',qualChecks:{},notes:\'\',selectedServices:{},customPrices:{},discount:0,customDays:{},multiPackage:false,activePackage:0,packages:[{name:\'Базовый\',selectedServices:{},customPrices:{},discount:0},{name:\'Оптимальный\',selectedServices:{},customPrices:{},discount:0},{name:\'Премиум\',selectedServices:{},customPrices:{},discount:0}],kpNotes:\'\',b24search:\'\',b24deals:[],b24loading:false,b24error:\'\',b24sending:false,b24success:\'\',b24dealLink:\'\'}; render();">⟲ Новый клиент</button>';
     } else {
       content = '<div class="card" style="border-color:#00B894;background:rgba(0,184,148,0.06)">' +
         '<div style="font-size:13px;color:var(--text);line-height:1.6">🔗 Найдите сделку в Битрикс24 и прикрепите КП.<br><strong>Сумма: ' + totalStr + '</strong> | ' + cat.icon + ' ' + cat.name + '</div>' +
@@ -1527,6 +1789,105 @@ function render() {
       '</div>' +
     '</div></div>' +
     '<div class="page">' + content + '</div>';
+    return;
+  }
+
+  // ─── COMPARE SCREEN ───
+  if (state.screen === "compare") {
+    const catKeys = Object.keys(CATEGORIES);
+    const catOptions = catKeys.map(k => {
+      const c = CATEGORIES[k];
+      return `<option value="${k}" ${state.compareCat1 === k || state.compareCat2 === k ? '' : ''}>${c.icon} ${c.name}</option>`;
+    }).join('');
+
+    const c1 = state.compareCat1 ? CATEGORIES[state.compareCat1] : null;
+    const c2 = state.compareCat2 ? CATEGORIES[state.compareCat2] : null;
+
+    let prosBlock1 = state.comparePros1.map((p, i) => `
+      <div class="compare-pros-item">
+        <input type="text" placeholder="Плюс ${i+1}..." value="${p}" oninput="setComparePro(1,${i},this.value)">
+        <button onclick="removeComparePro(1,${i})">−</button>
+      </div>`).join('');
+    prosBlock1 += `<button class="btn btn-outline" style="padding:8px 14px;font-size:12px;margin-top:4px" onclick="addComparePro(1)">+ Добавить плюс</button>`;
+
+    let prosBlock2 = state.comparePros2.map((p, i) => `
+      <div class="compare-pros-item">
+        <input type="text" placeholder="Плюс ${i+1}..." value="${p}" oninput="setComparePro(2,${i},this.value)">
+        <button onclick="removeComparePro(2,${i})">−</button>
+      </div>`).join('');
+    prosBlock2 += `<button class="btn btn-outline" style="padding:8px 14px;font-size:12px;margin-top:4px" onclick="addComparePro(2)">+ Добавить плюс</button>`;
+
+    const canGenerate = c1 && c2 && state.compareCat1 !== state.compareCat2;
+
+    let resultBlock = '';
+    if (canGenerate) {
+      const compareText = getCompareText().replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      resultBlock = `
+        <div class="kp-preview" style="margin-top:16px">
+          <div class="card-label">Предпросмотр</div>
+          <pre class="kp-text">${compareText}</pre>
+        </div>
+        <button class="btn" style="background:var(--accent)" onclick="copyText(getCompareText())">
+          📋 Скопировать (текст)
+        </button>
+        <button class="btn" style="background:#6C5CE7;margin-top:8px" onclick="generateComparePDF()">
+          📄 Скачать PDF
+        </button>`;
+    }
+
+    app.innerHTML = `
+      <div class="header"><div class="header-row">
+        <button class="back-btn" onclick="state.screen='home'; render();">←</button>
+        <div class="header-info">
+          <div class="header-cat" style="color:var(--accent)">⚖️ Сравнение</div>
+          <div class="header-title">Сравнение направлений</div>
+        </div>
+      </div></div>
+      <div class="page">
+        <div class="card">
+          <div class="card-label">Клиент</div>
+          <input type="text" placeholder="Имя / ФИО" value="${state.clientName}" oninput="state.clientName=this.value" style="margin-bottom:8px">
+          <input type="text" placeholder="Компания" value="${state.clientCompany}" oninput="state.clientCompany=this.value">
+        </div>
+        <div class="compare-cols">
+          <div class="compare-col">
+            <div class="card">
+              <div class="card-label">Вариант 1</div>
+              <select onchange="state.compareCat1=this.value; render();">
+                <option value="" ${!state.compareCat1 ? 'selected' : ''} disabled>Выберите...</option>
+                ${catKeys.map(k => `<option value="${k}" ${state.compareCat1===k?'selected':''}>${CATEGORIES[k].icon} ${CATEGORIES[k].name}</option>`).join('')}
+              </select>
+              ${c1 ? `<div style="margin-top:12px"><div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px">Плюсы:</div>${prosBlock1}</div>` : ''}
+            </div>
+          </div>
+          <div class="compare-col">
+            <div class="card">
+              <div class="card-label">Вариант 2</div>
+              <select onchange="state.compareCat2=this.value; render();">
+                <option value="" ${!state.compareCat2 ? 'selected' : ''} disabled>Выберите...</option>
+                ${catKeys.map(k => `<option value="${k}" ${state.compareCat2===k?'selected':''}>${CATEGORIES[k].icon} ${CATEGORIES[k].name}</option>`).join('')}
+              </select>
+              ${c2 ? `<div style="margin-top:12px"><div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px">Плюсы:</div>${prosBlock2}</div>` : ''}
+            </div>
+          </div>
+        </div>
+        ${canGenerate ? `
+          <div class="card">
+            <div class="card-label">Рекомендация</div>
+            <div class="compare-recommend">
+              <label class="${state.compareRecommend===1?'active':''}" onclick="state.compareRecommend=state.compareRecommend===1?0:1; render();">
+                <input type="radio" name="rec" ${state.compareRecommend===1?'checked':''}>
+                ★ ${c1.name}
+              </label>
+              <label class="${state.compareRecommend===2?'active':''}" onclick="state.compareRecommend=state.compareRecommend===2?0:2; render();">
+                <input type="radio" name="rec" ${state.compareRecommend===2?'checked':''}>
+                ★ ${c2.name}
+              </label>
+            </div>
+          </div>` : ''}
+        ${resultBlock}
+        <button class="btn btn-outline" style="margin-top:16px" onclick="state.screen='home'; render();">← На главную</button>
+      </div>`;
     return;
   }
 }
