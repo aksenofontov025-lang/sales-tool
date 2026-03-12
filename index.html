@@ -413,6 +413,31 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
 }
 .page { -webkit-overflow-scrolling: touch; }
 .kp-text { max-height: 350px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+/* ─── PLATFORM COMPARISON ─── */
+.platform-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.platform-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 16px; transition: all 0.2s; }
+.platform-card.recommended { border-color: var(--accent); background: rgba(108,92,231,0.06); }
+.platform-card-header { text-align: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.platform-icon { font-size: 28px; margin-bottom: 6px; }
+.platform-name { font-size: 16px; font-weight: 800; }
+.platform-summary { font-size: 11px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+.platform-section { margin-bottom: 12px; }
+.platform-section-label { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.platform-item { font-size: 12px; line-height: 1.6; color: var(--text); }
+.platform-item.pro::before { content: "\2713 "; color: var(--success); }
+.platform-item.con::before { content: "\2717 "; color: var(--danger); }
+.platform-price-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+.platform-price-name { color: var(--muted); flex: 1; }
+.platform-price-value { font-weight: 700; color: var(--text); white-space: nowrap; margin-left: 8px; }
+.platform-recommend-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.platform-recommend-btn { padding: 10px 8px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface); cursor: pointer; text-align: center; font-size: 12px; font-weight: 600; color: var(--text); transition: all 0.2s; }
+.platform-recommend-btn:hover { border-color: rgba(108,92,231,0.3); }
+.platform-recommend-btn.active { border-color: var(--accent); background: rgba(108,92,231,0.08); color: var(--accent); }
+@media (max-width: 600px) {
+  .platform-grid { grid-template-columns: 1fr; }
+  .platform-recommend-grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
@@ -745,6 +770,86 @@ const CATEGORIES = {
   }
 };
 
+// ─── PLATFORM COMPARISONS ───
+const PLATFORM_COMPARISONS = {
+  sites: {
+    title: "Сравнение платформ для разработки сайта",
+    platforms: [
+      {
+        id: "tilda", name: "Tilda", icon: "🟠", color: "#FF8C42",
+        pros: [
+          "Быстрый запуск — сайт за 3–5 дней",
+          "Клиент сам обновляет контент без разработчика",
+          "Встроенные формы, аналитика, CRM-интеграции",
+          "Не нужен программист для поддержки"
+        ],
+        cons: [
+          "Ограничения для сложной логики (фильтры, калькуляторы, личные кабинеты)",
+          "Код выгрузить нельзя — сайт живёт только на Tilda"
+        ],
+        pricing: [
+          { name: "Лендинг / сайт-визитка", from: 15000, to: 15000 },
+          { name: "Многостраничный сайт", from: 20000, to: 20000, note: "+5 000 ₽ за доп. страницу" },
+          { name: "Интернет-магазин (каталог)", from: 10000, to: 10000 }
+        ],
+        monthly: [
+          { name: "Подписка платформы", value: "от 750 ₽/мес" },
+          { name: "Обслуживание", value: "0 ₽ (клиент сам)" }
+        ],
+        summary: "Быстро и дёшево"
+      },
+      {
+        id: "wordpress", name: "WordPress", icon: "🔵", color: "#21759B",
+        pros: [
+          "Огромная база шаблонов и плагинов — почти любую задачу можно закрыть",
+          "WooCommerce — полноценный магазин с корзиной, оплатой, доставкой",
+          "Сайт полностью ваш — можно перенести на любой хостинг"
+        ],
+        cons: [
+          "В РФ полноценно не поддерживается (обновления и плагины нестабильны)",
+          "Нужно следить за безопасностью — без обслуживания сайт уязвим",
+          "Дольше в разработке"
+        ],
+        pricing: [
+          { name: "Сайт на WordPress", from: 30000, to: 30000 },
+          { name: "Магазин WooCommerce", from: 40000, to: 40000 },
+          { name: "Каталог под ключ", from: 84000, to: 84000 }
+        ],
+        monthly: [
+          { name: "Хостинг", value: "от 300 ₽/мес" },
+          { name: "Шаблоны", value: "бесплатно или 3 000–8 000 ₽ разово" },
+          { name: "Обслуживание", value: "от 5 000 ₽/мес" }
+        ],
+        summary: "Гибко и независимо"
+      },
+      {
+        id: "bitrix_cms", name: "1С-Битрикс", icon: "🔴", color: "#E6392B",
+        pros: [
+          "Нативная интеграция с 1С и Битрикс24 CRM",
+          "Заказ на сайте автоматически создаёт сделку и обновляет остатки в 1С",
+          "Мощный магазин из коробки: фильтры, сравнение, личный кабинет, доставка, оплата"
+        ],
+        cons: [
+          "Дорого — разработка в 2–3 раза дороже Tilda",
+          "Долго — от 4 недель",
+          "Нужен специализированный разработчик"
+        ],
+        pricing: [
+          { name: "Лицензия «Старт»", from: 4475, to: 4475, note: "/год" },
+          { name: "Лицензия «Малый бизнес»", from: 27190, to: 27190, note: "/год" },
+          { name: "Лицензия «Бизнес»", from: 72190, to: 72190, note: "/год" },
+          { name: "Разработка сайта", from: 50000, to: 50000 },
+          { name: "Магазин с интеграцией 1С", from: 100000, to: 100000 }
+        ],
+        monthly: [
+          { name: "Обслуживание", value: "от 10 000 ₽/мес" }
+        ],
+        summary: "Полная экосистема с 1С и CRM"
+      }
+    ]
+  }
+};
+
 const QUAL_CHECKS = [
   { id: "budget", label: "Есть бюджет / готов обсуждать стоимость", type: "green" },
   { id: "timeline", label: "Есть сроки / дедлайн", type: "green" },
@@ -794,7 +899,11 @@ let state = {
   compareCat2: null,
   comparePros1: [""],
   comparePros2: [""],
-  compareRecommend: 0
+  compareRecommend: 0,
+  // Platform comparison
+  platformScreen: false,
+  platformRecommend: 0,
+  platformNotes: ""
 };
 
 // ─── BITRIX24 EMBEDDED CONTEXT ───
@@ -1254,7 +1363,7 @@ function buildKPHTML() {
     });
     compareHTML += '</tbody></table></div>';
 
-    return '<div style="max-width:800px;margin:0 auto;padding:40px 48px;font-family:Manrope,-apple-system,sans-serif;color:#1a1a2e;background:#fff">' +
+    return '<div style="max-width:800px;margin:0 auto;padding:40px 32px;font-family:Manrope,-apple-system,sans-serif;color:#1a1a2e;background:#fff">' +
       headerHTML +
       '<div style="margin-top:32px;margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:#6C5CE7;letter-spacing:2px;text-transform:uppercase">Коммерческое предложение</div><div style="font-size:22px;font-weight:800;color:#1a1a2e;margin-top:8px">' + cat.name + '</div><div style="font-size:13px;color:#666;margin-top:4px">' + dateStr + ' — ' + activePkgs.length + ' вариант' + (activePkgs.length > 1 ? 'а' : '') + '</div></div>' +
       clientHTML + tablesHTML + compareHTML +
@@ -1266,7 +1375,7 @@ function buildKPHTML() {
   const singlePkg = { selectedServices: state.selectedServices, customPrices: state.customPrices, discount: state.discount };
   const tableHTML = buildPkgTable(singlePkg, '');
 
-  return '<div style="max-width:800px;margin:0 auto;padding:40px 48px;font-family:Manrope,-apple-system,sans-serif;color:#1a1a2e;background:#fff">' +
+  return '<div style="max-width:800px;margin:0 auto;padding:40px 32px;font-family:Manrope,-apple-system,sans-serif;color:#1a1a2e;background:#fff">' +
     headerHTML +
     '<div style="margin-top:32px;margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:#6C5CE7;letter-spacing:2px;text-transform:uppercase">Коммерческое предложение</div><div style="font-size:22px;font-weight:800;color:#1a1a2e;margin-top:8px">' + cat.name + '</div><div style="font-size:13px;color:#666;margin-top:4px">' + dateStr + '</div></div>' +
     clientHTML + tableHTML +
@@ -1288,7 +1397,7 @@ function generatePDF() {
     container.offsetHeight; /* force layout reflow */
 
     const opt = {
-      margin: 0,
+      margin: [10, 10, 10, 10],
       filename: filename,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
@@ -1332,17 +1441,17 @@ async function generatePDFBase64() {
   if (typeof html2pdf === 'undefined') return null;
   const container = document.createElement('div');
   container.innerHTML = buildKPHTML();
-  container.style.position = 'fixed';
-  container.style.left = '0';
-  container.style.top = '0';
-  container.style.width = '900px';
-  container.style.opacity = '0';
-  container.style.zIndex = '-9999';
-  container.style.pointerEvents = 'none';
+  Object.assign(container.style, {
+    width: '900px',
+    background: '#fff',
+    position: 'relative',
+    pointerEvents: 'none'
+  });
   document.body.appendChild(container);
+  container.offsetHeight; /* force layout reflow */
   try {
     const opt = {
-      margin: 0,
+      margin: [10, 10, 10, 10],
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
@@ -1510,6 +1619,174 @@ function getCompareText() {
   return t;
 }
 
+function getPlatformCompareText() {
+  const platformData = PLATFORM_COMPARISONS[state.catKey || 'sites'];
+  if (!platformData) return '';
+  const platforms = platformData.platforms;
+  let t = `СРАВНЕНИЕ ПЛАТФОРМ ДЛЯ РАЗРАБОТКИ САЙТА\nот компании ${COMPANY.brand}\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+  if (state.clientName || state.clientCompany) {
+    t += `Для: ${state.clientName}`;
+    if (state.clientCompany) t += ` (${state.clientCompany})`;
+    t += '\n\n';
+  }
+  platforms.forEach((p, idx) => {
+    const isRec = state.platformRecommend === (idx + 1);
+    t += `═══ ${p.icon} ${p.name}${isRec ? ' ★ РЕКОМЕНДУЕМ' : ''} ═══\n`;
+    t += `${p.summary}\n\n`;
+    t += `Плюсы:\n`;
+    p.pros.forEach(pr => { t += `  ✓ ${pr}\n`; });
+    t += `\nМинусы:\n`;
+    p.cons.forEach(c => { t += `  ✗ ${c}\n`; });
+    t += `\nСтоимость разработки:\n`;
+    p.pricing.forEach(pr => {
+      const priceStr = pr.from === pr.to ? fmt(pr.from) + ' ₽' : 'от ' + fmt(pr.from) + ' до ' + fmt(pr.to) + ' ₽';
+      t += `  • ${pr.name}: ${priceStr}${pr.note ? ' ' + pr.note : ''}\n`;
+    });
+    t += `\nЕжемесячные расходы:\n`;
+    p.monthly.forEach(m => { t += `  • ${m.name}: ${m.value}\n`; });
+    t += '\n';
+  });
+  t += `─── РЕЗЮМЕ ───\n\nБыстро и дёшево → Tilda\nГибко и независимо → WordPress\nПолная экосистема с 1С и CRM → 1С-Битрикс\n`;
+  if (state.platformRecommend > 0 && state.platformRecommend <= platforms.length) {
+    t += `\n★ Наша рекомендация: ${platforms[state.platformRecommend - 1].name}\n`;
+  }
+  if (state.platformNotes) {
+    t += `\n─── ПРИМЕЧАНИЯ ───\n\n${state.platformNotes}\n`;
+  }
+  t += `\n─── КОНТАКТЫ ───\n\n${COMPANY.brand}\nТел: ${COMPANY.phone}\nTelegram: ${COMPANY.telegram}\n${COMPANY.site}`;
+  return t;
+}
+
+function buildPlatformCompareHTML() {
+  const platformData = PLATFORM_COMPARISONS[state.catKey || 'sites'];
+  if (!platformData) return '';
+  const platforms = platformData.platforms;
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('ru-RU', {day:'numeric',month:'long',year:'numeric'});
+
+  const headerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:24px;border-bottom:3px solid #6C5CE7">' +
+    '<div><div style="font-size:28px;font-weight:800;color:#6C5CE7;letter-spacing:-0.5px">' + COMPANY.brandShort + '</div><div style="font-size:14px;font-weight:700;color:#333;margin-top:-2px">' + COMPANY.brandSub + '</div></div>' +
+    '<div style="text-align:right;font-size:12px;color:#666;line-height:1.7"><div style="font-weight:700;color:#333">' + COMPANY.site + '</div>' + COMPANY.phone + '<br>' + COMPANY.email + '</div></div>';
+
+  const clientHTML = (state.clientName || state.clientCompany) ? '<div style="margin-top:20px;padding:16px 20px;background:#F4F3FF;border-radius:10px"><div style="font-size:11px;font-weight:700;color:#6C5CE7;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Подготовлено для</div><div style="font-size:16px;font-weight:700;color:#1a1a2e">' + state.clientName + (state.clientCompany ? ' — ' + state.clientCompany : '') + '</div></div>' : '';
+
+  let colsHTML = '<div style="display:flex;gap:14px;margin-top:28px">';
+  platforms.forEach((p, idx) => {
+    const isRec = state.platformRecommend === (idx + 1);
+    let prosHTML = p.pros.map(pr => '<div style="display:flex;gap:6px;margin-bottom:4px;font-size:11px;line-height:1.5"><span style="color:#00B894;flex-shrink:0">✓</span><span>' + pr + '</span></div>').join('');
+    let consHTML = p.cons.map(c => '<div style="display:flex;gap:6px;margin-bottom:4px;font-size:11px;line-height:1.5"><span style="color:#E17055;flex-shrink:0">✗</span><span>' + c + '</span></div>').join('');
+    let pricingHTML = p.pricing.map(pr => {
+      const priceStr = pr.from === pr.to ? fmt(pr.from) + ' ₽' : 'от ' + fmt(pr.from) + ' ₽';
+      return '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px"><span style="color:#666">' + pr.name + '</span><span style="font-weight:700;white-space:nowrap;margin-left:4px">' + priceStr + (pr.note ? ' ' + pr.note : '') + '</span></div>';
+    }).join('');
+    let monthlyHTML = p.monthly.map(m =>
+      '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px"><span style="color:#666">' + m.name + '</span><span style="font-weight:700;white-space:nowrap;margin-left:4px">' + m.value + '</span></div>'
+    ).join('');
+
+    colsHTML += '<div style="flex:1;padding:14px;border:2px solid ' + (isRec ? '#6C5CE7' : '#E8E9ED') + ';border-radius:12px;' + (isRec ? 'background:#F4F3FF' : '') + '">' +
+      '<div style="text-align:center;margin-bottom:10px"><div style="font-size:24px">' + p.icon + '</div>' +
+      '<div style="font-size:14px;font-weight:800;color:' + p.color + '">' + p.name + '</div>' +
+      '<div style="font-size:10px;color:#999">' + p.summary + '</div>' +
+      (isRec ? '<div style="font-size:10px;color:#6C5CE7;font-weight:700;margin-top:4px">★ Рекомендуем</div>' : '') + '</div>' +
+      '<div style="border-top:1px solid #E8E9ED;padding-top:10px;margin-bottom:10px"><div style="font-size:9px;font-weight:700;color:#999;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Плюсы</div>' + prosHTML + '</div>' +
+      '<div style="margin-bottom:10px"><div style="font-size:9px;font-weight:700;color:#999;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Минусы</div>' + consHTML + '</div>' +
+      '<div style="margin-bottom:10px"><div style="font-size:9px;font-weight:700;color:#999;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Стоимость</div>' + pricingHTML + '</div>' +
+      '<div><div style="font-size:9px;font-weight:700;color:#999;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Ежемесячно</div>' + monthlyHTML + '</div>' +
+    '</div>';
+  });
+  colsHTML += '</div>';
+
+  const summaryHTML = '<div style="margin-top:24px;padding:16px 20px;background:#F0FFF4;border-radius:10px;border:1px solid #C3FAE8"><div style="font-size:11px;font-weight:700;color:#00B894;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Резюме</div><div style="font-size:12px;line-height:1.8;color:#333">Быстро и дёшево → <strong>Tilda</strong><br>Гибко и независимо → <strong>WordPress</strong><br>Полная экосистема с 1С и CRM → <strong>1С-Битрикс</strong></div></div>';
+  const notesHTML = state.platformNotes ? '<div style="margin-top:20px;padding:16px 20px;background:#FFF9E6;border-left:4px solid #F0932B;border-radius:0 8px 8px 0"><div style="font-size:11px;font-weight:700;color:#F0932B;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Примечания</div><div style="font-size:13px;line-height:1.6;color:#333">' + state.platformNotes.replace(/\n/g,'<br>') + '</div></div>' : '';
+  const footerHTML = '<div style="margin-top:36px;padding-top:20px;border-top:2px solid #E8E9ED;font-size:11px;color:#999;line-height:1.7">' + COMPANY.legal + ' | ИНН: ' + COMPANY.inn + '<br>' + COMPANY.phone + ' | ' + COMPANY.email + ' | ' + COMPANY.site + '</div>';
+
+  return '<div style="max-width:800px;margin:0 auto;padding:40px 32px;font-family:Manrope,-apple-system,sans-serif;color:#1a1a2e;background:#fff">' +
+    headerHTML +
+    '<div style="margin-top:32px"><div style="font-size:11px;font-weight:700;color:#6C5CE7;letter-spacing:2px;text-transform:uppercase">Сравнение платформ</div><div style="font-size:22px;font-weight:800;color:#1a1a2e;margin-top:8px">Tilda vs WordPress vs 1С-Битрикс</div><div style="font-size:13px;color:#666;margin-top:4px">' + dateStr + '</div></div>' +
+    clientHTML + colsHTML + summaryHTML + notesHTML + footerHTML + '</div>';
+}
+
+function generatePlatformPDF() {
+  const kpHTML = buildPlatformCompareHTML();
+  const filename = 'Сравнение_платформ_Tilda_WordPress_Битрикс.pdf';
+  if (typeof html2pdf !== 'undefined') {
+    const container = document.createElement('div');
+    container.innerHTML = kpHTML;
+    Object.assign(container.style, { width:'900px', background:'#fff', position:'relative' });
+    document.body.appendChild(container);
+    container.offsetHeight;
+    const opt = {
+      margin: [10, 10, 10, 10], filename: filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+    html2pdf().set(opt).from(container).save().then(() => {
+      document.body.removeChild(container);
+      showToast('✓ PDF сохранён');
+      saveToHistory('compare', { compareCats: ['Сравнение платформ: Tilda / WordPress / 1С-Битрикс'] });
+    }).catch(() => {
+      document.body.removeChild(container);
+      showToast('Ошибка генерации PDF');
+    });
+  } else {
+    generatePDFFallback(kpHTML, filename);
+  }
+}
+
+async function attachPlatformToDeal() {
+  if (!b24context.dealId) return;
+  const title = b24context.dealData ? b24context.dealData.TITLE : ('Сделка #' + b24context.dealId);
+  state.b24sending = true;
+  render();
+  try {
+    const platformText = getPlatformCompareText();
+    const comment = '🌐 СРАВНЕНИЕ ПЛАТФОРМ\n━━━━━━━━━━━━━━━━━━━━━━\n\n' + platformText;
+    let pdfBase64 = null;
+    try {
+      if (typeof html2pdf !== 'undefined') {
+        const container = document.createElement('div');
+        container.innerHTML = buildPlatformCompareHTML();
+        Object.assign(container.style, { width:'900px', background:'#fff', position:'relative', pointerEvents:'none' });
+        document.body.appendChild(container);
+        container.offsetHeight;
+        const opt = {
+          margin: [10, 10, 10, 10],
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+        const pdfBlob = await html2pdf().set(opt).from(container).outputPdf('blob');
+        document.body.removeChild(container);
+        pdfBase64 = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(',')[1]);
+          reader.readAsDataURL(pdfBlob);
+        });
+      }
+    } catch(e) {}
+    const pdfFilename = 'Сравнение_платформ_' + (state.clientName || 'сайты').replace(/\s/g,'_') + '.pdf';
+    const commentFields = { ENTITY_ID: b24context.dealId, ENTITY_TYPE: 'deal', COMMENT: comment };
+    if (pdfBase64) {
+      commentFields.FILES = [['document:' + pdfFilename, pdfBase64]];
+    }
+    await b24call('crm.timeline.comment.add', { fields: commentFields });
+    state.b24sending = false;
+    state.b24success = title;
+    state.b24dealLink = 'https://2kconsult.bitrix24.ru/crm/deal/details/' + b24context.dealId + '/';
+    state.platformScreen = false;
+    saveToHistory('b24', { dealTitle: title });
+    render();
+    showToast(pdfBase64 ? '✓ Сравнение + PDF прикреплены!' : '✓ Сравнение прикреплено (без PDF)');
+  } catch(e) {
+    state.b24sending = false;
+    state.b24error = 'Ошибка: ' + e.message;
+    render();
+  }
+}
+
 function buildCompareHTML() {
   const c1 = CATEGORIES[state.compareCat1];
   const c2 = CATEGORIES[state.compareCat2];
@@ -1547,7 +1824,7 @@ function buildCompareHTML() {
 
   const footerHTML = '<div style="margin-top:36px;padding-top:20px;border-top:2px solid #E8E9ED;font-size:11px;color:#999;line-height:1.7">' + COMPANY.legal + ' | ИНН: ' + COMPANY.inn + '<br>' + COMPANY.phone + ' | ' + COMPANY.email + ' | ' + COMPANY.site + '</div>';
 
-  return '<div style="max-width:800px;margin:0 auto;padding:40px 48px;font-family:Manrope,-apple-system,sans-serif;color:#1a1a2e;background:#fff">' +
+  return '<div style="max-width:800px;margin:0 auto;padding:40px 32px;font-family:Manrope,-apple-system,sans-serif;color:#1a1a2e;background:#fff">' +
     headerHTML +
     '<div style="margin-top:32px"><div style="font-size:11px;font-weight:700;color:#6C5CE7;letter-spacing:2px;text-transform:uppercase">Сравнение направлений</div><div style="font-size:22px;font-weight:800;color:#1a1a2e;margin-top:8px">' + c1.name + ' vs ' + c2.name + '</div><div style="font-size:13px;color:#666;margin-top:4px">' + dateStr + '</div></div>' +
     clientHTML + colsHTML + footerHTML + '</div>';
@@ -1566,7 +1843,7 @@ function generateComparePDF() {
     document.body.appendChild(container);
     container.offsetHeight; /* force layout reflow */
     const opt = {
-      margin: 0, filename: filename,
+      margin: [10, 10, 10, 10], filename: filename,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
@@ -1589,6 +1866,71 @@ function generateComparePDF() {
 function render() {
   const app = document.getElementById("app");
   const cat = state.catKey ? CATEGORIES[state.catKey] : null;
+
+  // ─── PLATFORM COMPARISON SCREEN (priority check) ───
+  if (state.platformScreen) {
+    const pCatKey = state.catKey || 'sites';
+    const platformData = PLATFORM_COMPARISONS[pCatKey];
+    if (!platformData) { state.platformScreen = false; render(); return; }
+    const platforms = platformData.platforms;
+
+    let platformCards = platforms.map((p, idx) => {
+      const isRec = state.platformRecommend === (idx + 1);
+      let prosHTML = p.pros.map(pr => '<div class="platform-item pro">' + pr + '</div>').join('');
+      let consHTML = p.cons.map(c => '<div class="platform-item con">' + c + '</div>').join('');
+      let pricingHTML = p.pricing.map(pr => {
+        const priceStr = pr.from === pr.to ? fmt(pr.from) + ' ₽' : 'от ' + fmt(pr.from) + ' до ' + fmt(pr.to) + ' ₽';
+        return '<div class="platform-price-row"><span class="platform-price-name">' + pr.name + '</span><span class="platform-price-value">' + priceStr + (pr.note ? ' ' + pr.note : '') + '</span></div>';
+      }).join('');
+      let monthlyHTML = p.monthly.map(m =>
+        '<div class="platform-price-row"><span class="platform-price-name">' + m.name + '</span><span class="platform-price-value">' + m.value + '</span></div>'
+      ).join('');
+      return '<div class="platform-card ' + (isRec ? 'recommended' : '') + '">' +
+        '<div class="platform-card-header">' +
+          '<div class="platform-icon">' + p.icon + '</div>' +
+          '<div class="platform-name" style="color:' + p.color + '">' + p.name + '</div>' +
+          '<div class="platform-summary">' + p.summary + '</div>' +
+          (isRec ? '<div style="font-size:11px;color:var(--accent);font-weight:700;margin-top:4px">★ Рекомендуем</div>' : '') +
+        '</div>' +
+        '<div class="platform-section"><div class="platform-section-label">Плюсы</div>' + prosHTML + '</div>' +
+        '<div class="platform-section"><div class="platform-section-label">Минусы</div>' + consHTML + '</div>' +
+        '<div class="platform-section"><div class="platform-section-label">Стоимость разработки</div>' + pricingHTML + '</div>' +
+        '<div class="platform-section"><div class="platform-section-label">Ежемесячные расходы</div>' + monthlyHTML + '</div>' +
+      '</div>';
+    }).join('');
+
+    const platformText = getPlatformCompareText().replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    let resultBlock = '<div class="kp-preview" style="margin-top:16px"><div class="card-label">Предпросмотр</div><pre class="kp-text">' + platformText + '</pre></div>' +
+      '<button class="btn" style="background:var(--accent)" onclick="copyText(getPlatformCompareText()); saveToHistory(\'compare\', { compareCats: [\'Сравнение платформ\'] });">📋 Скопировать (текст)</button>' +
+      '<button class="btn" style="background:#6C5CE7;margin-top:8px" onclick="generatePlatformPDF()">📄 Скачать PDF</button>' +
+      (b24context.isEmbedded && b24context.dealId
+        ? '<button class="btn" style="background:#00B894;margin-top:8px" onclick="attachPlatformToDeal()">🔗 Прикрепить к сделке</button>'
+        : '');
+
+    const recBtns = platforms.map((p, idx) =>
+      '<div class="platform-recommend-btn ' + (state.platformRecommend === (idx+1) ? 'active' : '') + '" onclick="state.platformRecommend = state.platformRecommend===' + (idx+1) + ' ? 0 : ' + (idx+1) + '; render();">' + p.icon + ' ' + p.name + '</div>'
+    ).join('');
+
+    app.innerHTML = '<div class="header"><div class="header-row">' +
+      '<button class="back-btn" onclick="state.platformScreen=false; render();">←</button>' +
+      '<div class="header-info">' +
+        '<div class="header-cat" style="color:#E17055">🌐 Сайты</div>' +
+        '<div class="header-title">Сравнение платформ</div>' +
+      '</div>' +
+    '</div></div>' +
+    '<div class="page">' +
+      '<div class="card"><div class="card-label">Клиент</div>' +
+        '<input type="text" placeholder="Имя / ФИО" value="' + (state.clientName || '') + '" oninput="state.clientName=this.value" style="margin-bottom:8px">' +
+        '<input type="text" placeholder="Компания" value="' + (state.clientCompany || '') + '" oninput="state.clientCompany=this.value">' +
+      '</div>' +
+      '<div class="platform-grid">' + platformCards + '</div>' +
+      '<div class="card"><div class="card-label">Рекомендация</div><div class="platform-recommend-grid">' + recBtns + '</div></div>' +
+      '<div class="card"><div class="card-label">Примечания</div><textarea placeholder="Особенности проекта, почему рекомендуем эту платформу..." oninput="state.platformNotes=this.value">' + (state.platformNotes || '') + '</textarea></div>' +
+      resultBlock +
+      '<button class="btn btn-outline" style="margin-top:16px" onclick="state.platformScreen=false; render();">← Назад</button>' +
+    '</div>';
+    return;
+  }
 
   if (state.screen === "home") {
     let cards = "";
@@ -1613,6 +1955,9 @@ function render() {
         ${cards}
         <button class="btn btn-outline" style="margin-top:16px" onclick="state.screen='compare'; state.compareCat1=null; state.compareCat2=null; state.comparePros1=['']; state.comparePros2=['']; state.compareRecommend=0; render();">
           ⚖️ Сравнить два направления
+        </button>
+        <button class="btn btn-outline" style="margin-top:8px" onclick="state.platformScreen=true; state.platformRecommend=0; state.platformNotes=''; render();">
+          🌐 Сравнение платформ для сайтов
         </button>
         <button class="btn btn-outline" style="margin-top:8px" onclick="state.screen='history'; render();">
           📋 История КП${getHistory().length ? ' (' + getHistory().length + ')' : ''}
@@ -1858,7 +2203,8 @@ function render() {
         ${b24context.isEmbedded && b24context.dealId
           ? '<button class="btn" style="background:#00B894;margin-top:8px" onclick="attachKPtoCurrentDeal()">🔗 Прикрепить КП к этой сделке</button>'
           : '<button class="btn" style="background:#00B894;margin-top:8px" onclick="state.screen=\'b24\'; state.b24deals=[]; state.b24error=\'\'; state.b24success=\'\'; state.b24search=state.clientName||\'\'; render();">🔗 Прикрепить КП к сделке в Б24</button>'
-        }`;
+        }
+        ${state.catKey === 'sites' ? '<button class="btn btn-outline" style="margin-top:12px" onclick="state.platformScreen=true; state.platformRecommend=0; state.platformNotes=\'\'; render();">🌐 Сравнение платформ (Tilda / WordPress / 1С-Битрикс)</button>' : ''}`;
     }
 
     app.innerHTML = `
@@ -1877,7 +2223,7 @@ function render() {
         ${totalBlock}
         <div class="btn-row" style="margin-top:16px">
           <button class="btn btn-outline" onclick="state.screen='questions'; render();">← Вопросы</button>
-          <button class="btn btn-outline" onclick="state={screen:'home',catKey:null,clientName:'',clientCompany:'',clientContact:'',clientInn:'',clientPhone:'',clientEmail:'',clientSource:'',qualChecks:{},notes:'',selectedServices:{},customPrices:{},discount:0,customDays:{},multiPackage:false,activePackage:0,packages:[{name:'Базовый',selectedServices:{},customPrices:{},discount:0},{name:'Оптимальный',selectedServices:{},customPrices:{},discount:0},{name:'Премиум',selectedServices:{},customPrices:{},discount:0}],kpNotes:'',b24search:'',b24deals:[],b24loading:false,b24error:'',b24sending:false,b24success:'',b24dealLink:''}; render();">⟲ Новый клиент</button>
+          <button class="btn btn-outline" onclick="state={screen:'home',catKey:null,clientName:'',clientCompany:'',clientContact:'',clientInn:'',clientPhone:'',clientEmail:'',clientSource:'',qualChecks:{},notes:'',selectedServices:{},customPrices:{},discount:0,customDays:{},multiPackage:false,activePackage:0,packages:[{name:'Базовый',selectedServices:{},customPrices:{},discount:0},{name:'Оптимальный',selectedServices:{},customPrices:{},discount:0},{name:'Премиум',selectedServices:{},customPrices:{},discount:0}],kpNotes:'',b24search:'',b24deals:[],b24loading:false,b24error:'',b24sending:false,b24success:'',b24dealLink:'',platformScreen:false,platformRecommend:0,platformNotes:''}; render();">⟲ Новый клиент</button>
         </div>
       </div>`;
     return;
@@ -1906,7 +2252,7 @@ function render() {
         '<div style="font-size:14px;color:var(--muted);margin-bottom:16px">Сделка: ' + state.b24success + '</div>' +
         '<a href="' + state.b24dealLink + '" target="_blank" style="display:inline-block;padding:12px 24px;background:var(--success);color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px">Открыть сделку в Б24 →</a>' +
       '</div>' +
-      '<button class="btn btn-outline" style="margin-top:12px" onclick="state={screen:\'home\',catKey:null,clientName:\'\',clientCompany:\'\',clientContact:\'\',clientInn:\'\',clientPhone:\'\',clientEmail:\'\',clientSource:\'\',qualChecks:{},notes:\'\',selectedServices:{},customPrices:{},discount:0,customDays:{},multiPackage:false,activePackage:0,packages:[{name:\'Базовый\',selectedServices:{},customPrices:{},discount:0},{name:\'Оптимальный\',selectedServices:{},customPrices:{},discount:0},{name:\'Премиум\',selectedServices:{},customPrices:{},discount:0}],kpNotes:\'\',b24search:\'\',b24deals:[],b24loading:false,b24error:\'\',b24sending:false,b24success:\'\',b24dealLink:\'\'}; render();">⟲ Новый клиент</button>';
+      '<button class="btn btn-outline" style="margin-top:12px" onclick="state={screen:\'home\',catKey:null,clientName:\'\',clientCompany:\'\',clientContact:\'\',clientInn:\'\',clientPhone:\'\',clientEmail:\'\',clientSource:\'\',qualChecks:{},notes:\'\',selectedServices:{},customPrices:{},discount:0,customDays:{},multiPackage:false,activePackage:0,packages:[{name:\'Базовый\',selectedServices:{},customPrices:{},discount:0},{name:\'Оптимальный\',selectedServices:{},customPrices:{},discount:0},{name:\'Премиум\',selectedServices:{},customPrices:{},discount:0}],kpNotes:\'\',b24search:\'\',b24deals:[],b24loading:false,b24error:\'\',b24sending:false,b24success:\'\',b24dealLink:\'\',platformScreen:false,platformRecommend:0,platformNotes:\'\'}; render();">⟲ Новый клиент</button>';
     } else {
       content = '<div class="card" style="border-color:#00B894;background:rgba(0,184,148,0.06)">' +
         '<div style="font-size:13px;color:var(--text);line-height:1.6">🔗 Найдите сделку в Битрикс24 и прикрепите КП.<br><strong>Сумма: ' + totalStr + '</strong> | ' + cat.icon + ' ' + cat.name + '</div>' +
